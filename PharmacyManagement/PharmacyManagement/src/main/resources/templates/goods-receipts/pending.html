@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Phiếu chờ duyệt chênh lệch - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('receipt')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Phiếu chờ duyệt chênh lệch nhận hàng</h2>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Phiếu Nhận</th>
+                            <th>Chi Nhánh</th>
+                            <th>Ngày Nhận</th>
+                            <th>Người Nhận</th>
+                            <th>Tổng Tiền GR</th>
+                            <th>Hành Động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="gr : ${receipts}">
+                            <td class="fw-bold text-primary" th:text="'GR-' + ${gr.receiptId}">GR-001</td>
+                            <td th:text="${gr.branch.branchName}">Branch A</td>
+                            <td th:text="${#temporals.format(gr.receivedDate, 'dd-MM-yyyy HH:mm')}">23-06-2026 12:00</td>
+                            <td th:text="${gr.receivedBy.fullName}">Nguyen Van An</td>
+                            <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(gr.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">1,800,000 đ</td>
+                            <td>
+                                <a th:href="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}" class="btn btn-sm btn-warning text-white"><i class="fa-solid fa-gavel me-1"></i>Xem xét chênh lệch</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(receipts)}">
+                            <td colspan="6" class="text-muted py-4">Không có phiếu chờ duyệt chênh lệch nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

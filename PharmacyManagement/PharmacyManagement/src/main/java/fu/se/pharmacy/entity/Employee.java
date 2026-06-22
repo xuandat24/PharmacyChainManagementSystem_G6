@@ -24,4 +24,14 @@ public class Employee {
 
     @Column(name = "Role", nullable = false)
     private String role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "BranchID", nullable = false)
+    private Branch branch;
+
+    @Column(name = "Phone", length = 20)
+    private String phone;
+
+    @Column(name = "Email", length = 100)
+    private String email;
 }

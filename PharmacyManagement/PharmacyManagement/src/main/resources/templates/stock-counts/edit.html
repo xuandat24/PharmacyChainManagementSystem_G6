@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nhập kết quả kiểm kê - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('stock')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Nhập số liệu kiểm kê thực tế: <span th:text="'SC-' + ${count.stockCountId}">SC-001</span></h2>
+                <p class="text-muted">Chi nhánh: <strong th:text="${count.branch.branchName}">Branch A</strong></p>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white p-4">
+                <form th:action="@{/stock-counts/save}" th:object="${form}" method="post">
+                    <input type="hidden" th:field="*{stockCountId}">
+
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">Thông tin chi tiết các lô hàng</h5>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Tên Thuốc</th>
+                                <th>Số Lô</th>
+                                <th>Tồn Sách Vở</th>
+                                <th style="width: 20%;">Số Thực Đếm <span class="text-danger">*</span></th>
+                                <th style="width: 30%;">Nguyên nhân chênh lệch (nếu có)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item, stat : ${form.items}">
+                                <td class="text-start ps-3">
+                                    <span th:text="${count.details[stat.index].medicine.medicineName}">Medicine Name</span>
+                                    <input type="hidden" th:field="*{items[__${stat.index}__].detailId}">
+                                </td>
+                                <td th:text="${count.details[stat.index].batchNumber}">Batch001</td>
+                                <td class="fw-semibold text-primary" th:text="${count.details[stat.index].systemQuantity}">100</td>
+                                <td>
+                                    <input type="number" th:field="*{items[__${stat.index}__].actualQuantity}" class="form-control text-center" min="0" required>
+                                </td>
+                                <td>
+                                    <input type="text" th:field="*{items[__${stat.index}__].reason}" class="form-control" placeholder="Lý do chênh lệch">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-calculator me-1"></i>Lưu & Tính chênh lệch</button>
+                        <a href="/stock-counts" class="btn btn-secondary">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

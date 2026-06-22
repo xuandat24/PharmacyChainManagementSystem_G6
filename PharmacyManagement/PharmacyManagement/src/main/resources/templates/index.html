@@ -18,28 +18,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- 1. THANH MENU BÊN TRÁI (SIDEBAR) -->
-        <div class="col-md-2 bg-dark p-0 sidebar">
-            <div class="p-3 text-white text-center border-bottom border-secondary">
-                <h5><i class="fa-solid fa-prescription-bottle-medical me-2 text-success"></i>Pharmacy Chain</h5>
-            </div>
-            <div class="list-group list-group-flush mt-3">
-                <a href="/" class="list-group-item list-group-item-action bg-dark text-white active py-3">
-                    <i class="fa-solid fa-chart-pie me-2"></i>Trang chủ (Dashboard)
-                </a>
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-secondary py-3">
-                    <i class="fa-solid fa-pills me-2"></i>Quản lý kho thuốc
-                </a>
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-secondary py-3">
-                    <i class="fa-solid fa-store me-2"></i>Quản lý chi nhánh
-                </a>
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-secondary py-3">
-                    <i class="fa-solid fa-file-invoice-dollar me-2"></i>Hóa đơn & Bán hàng
-                </a>
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-secondary py-3">
-                    <i class="fa-solid fa-users me-2"></i>Quản lý nhân viên
-                </a>
-            </div>
-        </div>
+        <div th:replace="~{layout/sidebar :: sidebar('dashboard')}"></div>
 
         <!-- 2. NỘI DUNG CHÍNH BÊN PHẢI -->
         <div class="col-md-10 bg-light p-4">

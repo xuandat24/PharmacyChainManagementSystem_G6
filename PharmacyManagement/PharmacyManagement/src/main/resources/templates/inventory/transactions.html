@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Biến động Kho - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .sidebar .active { background-color: #198754 !important; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('inventory')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Nhật ký Biến động Kho</h2>
+                <div>
+                    <a href="/inventory" class="btn btn-secondary">Quay lại Kho</a>
+                </div>
+            </div>
+
+            <!-- List Table -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Giao Dịch</th>
+                            <th th:if="${user.role == 'Admin'}">Chi Nhánh</th>
+                            <th>Tên Thuốc</th>
+                            <th>Số Lô</th>
+                            <th>Loại Biến Động</th>
+                            <th>Mã Chứng Từ (Ref ID)</th>
+                            <th>Số Lượng Thay Đổi</th>
+                            <th>Thời Gian</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="tx : ${transactions}">
+                            <td class="fw-bold text-secondary" th:text="'TX-' + ${tx.transactionId}">TX-001</td>
+                            <td th:if="${user.role == 'Admin'}" th:text="${tx.branch.branchName}">Branch A</td>
+                            <td class="text-start ps-3 fw-semibold" th:text="${tx.medicine.medicineName}">Panadol</td>
+                            <td th:text="${tx.batchNumber}">PA001</td>
+                            <td>
+                                <span th:if="${tx.transactionType == 'RECEIPT'}" class="badge bg-success-subtle text-success">Nhập hàng</span>
+                                <span th:if="${tx.transactionType == 'SALE'}" class="badge bg-primary-subtle text-primary">Bán lẻ</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info-subtle text-info">Nhận điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_OUT'}" class="badge bg-warning-subtle text-warning">Xuất điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_IN'}" class="badge bg-success">Kiểm kê tăng</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_OUT'}" class="badge bg-danger">Kiểm kê giảm</span>
+                                <span th:if="${tx.transactionType == 'SALE_RETURN'}" class="badge bg-secondary">Hủy đơn/Hoàn trả</span>
+                            </td>
+                            <td th:text="${tx.referenceId}">10</td>
+                            <td class="fw-bold" th:classappend="${tx.quantityChange > 0} ? 'text-success' : 'text-danger'">
+                                <span th:text="${tx.quantityChange > 0 ? '+' : ''}"></span><span th:text="${tx.quantityChange}">+50</span>
+                            </td>
+                            <td th:text="${#temporals.format(tx.transactionDate, 'dd-MM-yyyy HH:mm:ss')}">23-06-2026 12:00:00</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td th:colspan="${user.role == 'Admin' ? 8 : 7}" class="text-muted py-4">Chưa có giao dịch biến động kho nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

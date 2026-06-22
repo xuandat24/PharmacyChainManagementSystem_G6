@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kiểm kê kho - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .sidebar .active { background-color: #198754 !important; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('stock')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Quản lý Kiểm kê kho</h2>
+                <div class="d-flex gap-2">
+                    <a th:if="${user.role == 'BranchManager'}" href="/stock-counts/create" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i>Tạo đợt kiểm kê mới</a>
+                    <a th:if="${user.role == 'Admin'}" href="/stock-counts/admin/pending" class="btn btn-warning text-white"><i class="fa-solid fa-bell me-1"></i>Chờ duyệt chênh lệch lớn</a>
+                </div>
+            </div>
+
+            <!-- List Table -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Kiểm Kê</th>
+                            <th>Chi Nhánh</th>
+                            <th>Ngày Kiểm</th>
+                            <th>Người Tạo</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${counts}">
+                            <td class="fw-bold text-primary" th:text="'SC-' + ${c.stockCountId}">SC-001</td>
+                            <td th:text="${c.branch.branchName}">Branch A</td>
+                            <td th:text="${#temporals.format(c.countDate, 'dd-MM-yyyy HH:mm')}">23-06-2026 12:00</td>
+                            <td th:text="${c.createdBy.fullName}">Nguyen Van An</td>
+                            <td>
+                                <span th:if="${c.status == 'DRAFT'}" class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">Nháp (Đang kiểm)</span>
+                                <span th:if="${c.status == 'PENDING_ADMIN_APPROVAL'}" class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill">Chờ Admin duyệt</span>
+                                <span th:if="${c.status == 'COMPLETED'}" class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">Hoàn tất</span>
+                                <span th:if="${c.status == 'CANCELLED'}" class="badge bg-light text-dark px-3 py-2 rounded-pill border">Đã bác bỏ</span>
+                            </td>
+                            <td>
+                                <div th:if="${user.role == 'BranchManager'}">
+                                    <a th:if="${c.status == 'DRAFT'}" th:href="@{/stock-counts/edit/{id}(id=${c.stockCountId})}" class="btn btn-sm btn-primary"><i class="fa-solid fa-pencil me-1"></i>Nhập số liệu</a>
+                                </div>
+                                <div th:if="${user.role == 'Admin'}">
+                                    <a th:if="${c.status == 'PENDING_ADMIN_APPROVAL'}" th:href="@{/stock-counts/admin/approve/{id}(id=${c.stockCountId})}" class="btn btn-sm btn-warning text-white"><i class="fa-solid fa-gavel me-1"></i>Xem chênh lệch</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(counts)}">
+                            <td colspan="6" class="text-muted py-4">Chưa có đợt kiểm kê nào được tạo</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

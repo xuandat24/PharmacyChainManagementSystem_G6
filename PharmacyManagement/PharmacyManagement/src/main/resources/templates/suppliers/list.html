@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách Nhà cung cấp - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .sidebar .active { background-color: #198754 !important; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('supplier')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Danh sách Nhà cung cấp</h2>
+                <div>
+                    <a href="/suppliers/create" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i>Thêm nhà cung cấp</a>
+                </div>
+            </div>
+
+            <!-- Search Form -->
+            <div class="card shadow-sm border-0 mb-4 bg-white">
+                <div class="card-body">
+                    <form th:action="@{/suppliers}" method="get" class="row g-3">
+                        <div class="col-md-9">
+                            <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm kiếm theo tên nhà cung cấp...">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i>Tìm kiếm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Table -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã NCC</th>
+                            <th>Tên Nhà Cung Cấp</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Địa Chỉ</th>
+                            <th>Hành Động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="supplier : ${suppliers}">
+                            <td class="fw-bold text-primary" th:text="'NCC-' + ${supplier.supplierId}">NCC-001</td>
+                            <td class="text-start ps-4 fw-semibold" th:text="${supplier.supplierName}">Mega Pharma Ltd</td>
+                            <td th:text="${supplier.phone}">0901111111</td>
+                            <td class="text-start" th:text="${supplier.address}">Ho Chi Minh City</td>
+                            <td>
+                                <a th:href="@{/suppliers/edit/{id}(id=${supplier.supplierId})}" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a th:href="@{/suppliers/delete/{id}(id=${supplier.supplierId})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')"><i class="fa-solid fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(suppliers)}">
+                            <td colspan="5" class="text-muted py-4">Không tìm thấy nhà cung cấp nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
