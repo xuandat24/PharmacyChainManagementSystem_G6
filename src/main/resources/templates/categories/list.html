@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Loại thuốc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Danh sách Loại thuốc</h2>
+        <a th:href="@{/categories/new}" class="btn btn-primary">+ Thêm loại thuốc mới</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th class="text-center" style="width: 10%">ID</th>
+                    <th style="width: 25%">Tên Loại Thuốc</th>
+                    <th style="width: 35%">Mô Tả</th>
+                    <th class="text-center" style="width: 15%">Trạng Thái</th>
+                    <th class="text-center" style="width: 15%">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cat : ${categories}">
+                    <td class="text-center" th:text="${cat.categoryId}"></td>
+                    <td class="fw-bold text-primary" th:text="${cat.categoryName}"></td>
+                    <td th:text="${cat.description}"></td>
+                    <td class="text-center">
+                        <span th:if="${cat.status == 'ACTIVE'}" class="badge bg-success">Hoạt động</span>
+                        <span th:if="${cat.status == 'INACTIVE'}" class="badge bg-danger">Ngừng hoạt động</span>
+                    </td>
+                    <td class="text-center">
+                        <a th:href="@{/categories/edit/{id}(id=${cat.categoryId})}" class="btn btn-sm btn-warning fw-bold">Sửa</a>
+                        <a th:href="@{/categories/delete/{id}(id=${cat.categoryId})}" class="btn btn-sm btn-danger fw-bold"
+                           onclick="return confirm('Bạn có chắc chắn muốn ngừng hoạt động loại thuốc này?');">Xóa</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

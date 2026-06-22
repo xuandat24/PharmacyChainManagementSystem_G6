@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Khách hàng</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .btn-add { padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .btn-add:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="header-container">
+    <h2>Danh sách Khách hàng</h2>
+    <a href="/customers/create" class="btn-add">+ Thêm Khách hàng mới</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Họ và Tên</th>
+        <th>Số Điện Thoại</th>
+        <th>Email</th>
+        <th>Ngày Sinh</th>
+        <th>Điểm Tích Lũy</th>
+        <th>Thao tác</th> </tr>
+    </thead>
+    <tbody>
+    <tr th:each="cust : ${customers}">
+        <td th:text="${cust.customerId}"></td>
+        <td th:text="${cust.fullName}"></td>
+        <td th:text="${cust.phone}"></td>
+        <td th:text="${cust.email}"></td>
+        <td th:text="${cust.dateOfBirth}"></td>
+        <td th:text="${cust.loyaltyPoints} + ' điểm'"></td>
+        <td>
+            <a th:href="@{/customers/edit/{id}(id=${cust.customerId})}" style="color: #007bff; text-decoration: none; font-weight: bold;">Sửa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
