@@ -1,7 +1,7 @@
 package fu.se.pharmacy.controller;
 
-import fu.se.pharmacy.entity.Employee;
-import fu.se.pharmacy.repository.EmployeeRepository;
+import fu.se.pharmacy.entity.AppUser;
+import fu.se.pharmacy.repository.AppUserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class LoginController {
 
     @Autowired
-    private EmployeeRepository employeeRepository;
+    private AppUserRepository appUserRepository;
 
     @GetMapping("/login")
     public String showLoginForm() {
@@ -29,7 +29,7 @@ public class LoginController {
                                HttpSession session,
                                Model model) {
 
-        Optional<Employee> employeeOpt = employeeRepository.findByUsername(username);
+        Optional<AppUser> employeeOpt = appUserRepository.findByUsername(username);
 
         // Kiểm tra xem user có tồn tại và đúng pass không
         if (employeeOpt.isPresent() && employeeOpt.get().getPasswordHash().equals(password)) {

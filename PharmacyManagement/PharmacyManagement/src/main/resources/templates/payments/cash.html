@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Thanh toán tiền mặt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-4" style="max-width:520px">
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fa-solid fa-money-bill-wave me-2"></i>Thanh toán Tiền mặt</h5>
+        </div>
+        <div class="card-body">
+            <!-- Tóm tắt hóa đơn -->
+            <div class="alert alert-light border mb-4 d-flex justify-content-between align-items-center">
+                <span>Hóa đơn #<span th:text="${sale.saleId}"></span></span>
+                <strong class="text-success fs-4"
+                        th:text="${#numbers.formatInteger(sale.finalAmount, 1, 'COMMA')} + ' đ'"></strong>
+            </div>
+
+            <form th:action="@{/payments/cash}" method="post">
+                <input type="hidden" name="saleId" th:value="${sale.saleId}">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold fs-5">Tiền khách đưa (đồng)</label>
+                    <input type="number" name="amountReceived" id="amountInput"
+                           class="form-control form-control-lg"
+                           th:min="${sale.finalAmount}" required placeholder="0"
+                           oninput="calcChange()">
+                </div>
+
+                <!-- Gợi ý mệnh giá -->
+                <div class="mb-3">
+                    <small class="text-muted">Gợi ý nhanh:</small><br>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(50000)">50.000</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(100000)">100.000</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(200000)">200.000</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(500000)">500.000</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(1000000)">1.000.000</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Tiền thừa trả lại:</span>
+                    <strong class="fs-4 text-primary" id="changeDisplay">0 đ</strong>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fa-solid fa-check-circle me-2"></i>Xác nhận đã nhận tiền
+                    </button>
+                    <a th:href="@{/sales/cart}" class="btn btn-outline-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    const total = [[${sale.finalAmount}]];
+    function calcChange() {
+        const recv = parseInt(document.getElementById('amountInput').value) || 0;
+        const change = recv - total;
+        const el = document.getElementById('changeDisplay');
+        if (change >= 0) {
+            el.innerHTML = change.toLocaleString('vi-VN') + ' đ';
+            el.className = 'fs-4 text-primary';
+        } else {
+            el.innerHTML = 'Chưa đủ tiền';
+            el.className = 'fs-4 text-danger';
+        }
+    }
+    function setAmount(val) {
+        document.getElementById('amountInput').value = val;
+        calcChange();
+    }
+</script>
+</body></html>

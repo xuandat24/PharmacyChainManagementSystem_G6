@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><title>Bán hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container-fluid py-3 px-4">
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="fa-solid fa-circle-exclamation me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-check-circle me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-3">
+        <!-- CỘT TRÁI: Giỏ hàng -->
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa-solid fa-cart-shopping me-2"></i>Hóa đơn #<span th:text="${sale.saleId}"></span></h5>
+                    <span class="badge bg-warning text-dark" th:text="${sale.status}"></span>
+                </div>
+                <div class="card-body">
+                    <!-- Thêm thuốc -->
+                    <form th:action="@{/sales/cart/add}" method="post" class="mb-3">
+                        <input type="hidden" name="saleId" th:value="${sale.saleId}">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold small">Chọn thuốc</label>
+                                <select name="medicineId" class="form-select" required>
+                                    <option value="">-- Chọn thuốc --</option>
+                                    <option th:each="m : ${medicines}"
+                                            th:value="${m.medicineId}"
+                                            th:text="${m.medicineName}
+                                                + ' - ' + ${#numbers.formatInteger(m.salePrice, 1, 'COMMA')} + ' đ'
+                                                + (${m.requiresPrescription} ? ' [Kê đơn]' : '')">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small">Số lượng</label>
+                                <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fa-solid fa-plus me-1"></i>Thêm vào đơn
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Bảng chi tiết -->
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Tên thuốc</th>
+                            <th class="text-center">Đơn giá</th>
+                            <th class="text-center" style="width:120px">Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
+                            <th style="width:40px"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${details}">
+                            <td class="fw-semibold" th:text="'Thuốc #' + ${d.medicineId}"></td>
+                            <td class="text-center text-muted small"
+                                th:text="${#numbers.formatInteger(d.unitPrice, 1, 'COMMA')} + ' đ'"></td>
+                            <td>
+                                <form th:action="@{/sales/cart/update}" method="post" class="d-flex gap-1">
+                                    <input type="hidden" name="saleDetailId" th:value="${d.saleDetailId}">
+                                    <input type="number" name="quantity" th:value="${d.quantity}"
+                                           class="form-control form-control-sm text-center" min="0" style="width:60px">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="text-end fw-bold text-success"
+                                th:text="${#numbers.formatInteger(d.lineAmount, 1, 'COMMA')} + ' đ'"></td>
+                            <td>
+                                <form th:action="@{/sales/cart/remove}" method="post">
+                                    <input type="hidden" name="saleDetailId" th:value="${d.saleDetailId}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Xóa dòng này?')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(details)}">
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-box-open fa-2x d-block mb-2 opacity-25"></i>
+                                Chưa có thuốc nào trong đơn
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot th:if="${!#lists.isEmpty(details)}">
+                        <tr class="table-success">
+                            <td colspan="3" class="text-end fw-bold">TỔNG CỘNG</td>
+                            <td class="text-end fw-bold fs-5"
+                                th:text="${#numbers.formatInteger(sale.finalAmount, 1, 'COMMA')} + ' đ'"></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: Khách hàng + Thanh toán -->
+        <div class="col-md-5">
+
+            <!-- Khách hàng -->
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="fa-solid fa-user me-2 text-primary"></i>Khách hàng
+                </div>
+                <div class="card-body">
+                    <div th:if="${selectedCustomer != null}" class="alert alert-primary py-2 mb-2">
+                        <strong th:text="${selectedCustomer.fullName}"></strong><br>
+                        <small>SĐT: <span th:text="${selectedCustomer.phone}"></span></small>
+                        <span th:if="${selectedCustomer.allergyNote != null}"
+                              class="badge bg-danger ms-2 d-block mt-1"
+                              th:text="'DỊ ỨNG: ' + ${selectedCustomer.allergyNote}"></span>
+                    </div>
+                    <!-- Tìm theo SĐT -->
+                    <div class="input-group mb-2">
+                        <input type="text" id="phoneInput" class="form-control form-control-sm"
+                               placeholder="Nhập SĐT tìm khách...">
+                        <button class="btn btn-sm btn-outline-primary" onclick="searchCustomer()">
+                            <i class="fa-solid fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="customerResult" class="mb-2"></div>
+                    <form th:action="@{/sales/cart/set-customer}" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="saleId" th:value="${sale.saleId}">
+                        <input type="number" name="customerId" id="customerIdInput" class="form-control form-control-sm"
+                               placeholder="Nhập ID khách" th:value="${sale.customerId}">
+                        <button type="submit" class="btn btn-sm btn-primary text-nowrap">Chọn</button>
+                    </form>
+                    <a href="/customers/create" class="btn btn-sm btn-outline-success mt-2 w-100">
+                        <i class="fa-solid fa-plus me-1"></i>Tạo khách mới
+                    </a>
+                </div>
+            </div>
+
+            <!-- Đơn thuốc -->
+            <div class="card shadow-sm border-0 mb-3" th:if="${selectedCustomer != null}">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="fa-solid fa-prescription me-2 text-success"></i>Đơn thuốc
+                </div>
+                <div class="card-body">
+                    <div th:if="${selectedPrescription != null}" class="alert alert-success py-2 mb-2">
+                        <strong>Đơn #<span th:text="${selectedPrescription.prescriptionId}"></span></strong>
+                        - BS. <span th:text="${selectedPrescription.doctorName}"></span><br>
+                        <small>Hết hạn: <span th:text="${selectedPrescription.validUntil}"></span></small>
+                    </div>
+                    <form th:action="@{/sales/cart/set-prescription}" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="saleId" th:value="${sale.saleId}">
+                        <input type="number" name="prescriptionId" class="form-control form-control-sm"
+                               placeholder="ID đơn thuốc" th:value="${sale.prescriptionId}">
+                        <button type="submit" class="btn btn-sm btn-success text-nowrap">Chọn</button>
+                    </form>
+                    <a th:href="@{/prescriptions(customerId=${sale.customerId})}"
+                       class="btn btn-sm btn-outline-success mt-2 w-100" target="_blank">
+                        Xem đơn thuốc của khách
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thanh toán -->
+            <div class="card shadow-sm border-0" th:if="${!#lists.isEmpty(details)}">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="fa-solid fa-money-bill me-2"></i>Thanh toán
+                </div>
+                <div class="card-body">
+                    <p class="fs-5 fw-bold text-success mb-3">
+                        Tổng: <span th:text="${#numbers.formatInteger(sale.finalAmount, 1, 'COMMA')} + ' đ'"></span>
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/payments/cash/{id}(id=${sale.saleId})}" class="btn btn-success btn-lg">
+                            <i class="fa-solid fa-money-bill-wave me-2"></i>Tiền mặt
+                        </a>
+                        <a th:href="@{/payments/online/{id}(id=${sale.saleId})}" class="btn btn-info text-white">
+                            <i class="fa-solid fa-qrcode me-2"></i>Chuyển khoản / QR
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hủy -->
+            <form th:action="@{/sales/cart/cancel}" method="post" class="mt-2"
+                  onsubmit="return confirm('Hủy toàn bộ hóa đơn này?')">
+                <input type="hidden" name="saleId" th:value="${sale.saleId}">
+                <button type="submit" class="btn btn-outline-danger w-100">
+                    <i class="fa-solid fa-ban me-1"></i>Hủy hóa đơn
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function searchCustomer() {
+        const phone = document.getElementById('phoneInput').value.trim();
+        if (!phone) return;
+        fetch('/customers/search?phone=' + encodeURIComponent(phone))
+            .then(r => r.json())
+            .then(data => {
+                const div = document.getElementById('customerResult');
+                if (data) {
+                    div.innerHTML = '<div class="alert alert-info py-1 small mb-1">'
+                        + '<strong>' + data.fullName + '</strong> — ' + data.phone
+                        + ' <button type="button" class="btn btn-sm btn-primary ms-2" onclick="selectCustomer(' + data.customerId + ')">Chọn</button></div>';
+                } else {
+                    div.innerHTML = '<div class="alert alert-warning py-1 small mb-1">Không tìm thấy khách</div>';
+                }
+            }).catch(() => {});
+    }
+    function selectCustomer(id) {
+        document.getElementById('customerIdInput').value = id;
+    }
+</script>
+</body></html>

@@ -2,50 +2,40 @@ package fu.se.pharmacy.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Customer")
+@Table(name = "customers")
 @Data
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CustomerID")
+    @Column(name = "customer_id")
     private Integer customerId;
 
-    @Column(name = "FullName", nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "Phone")
+    @Column(name = "phone")
     private String phone;
 
-    @Column(name = "Address")
-    private String address;
-
-    @Column(name = "Email", unique = true)
-    private String email;
-
-    @Column(name = "DateOfBirth")
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(name = "Gender")
-    private String gender;
+    @Column(name = "gender")
+    private String gender; // MALE, FEMALE, OTHER
 
-    @Column(name = "Allergies")
-    private String allergies;
+    @Column(name = "address")
+    private String address;
 
-    @Column(name = "LoyaltyPoints", nullable = false)
-    private Integer loyaltyPoints = 0;
+    @Column(name = "allergy_note")
+    private String allergyNote;
 
-    @Column(name = "CreatedAt", updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-   
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    protected void onCreate() { this.createdAt = LocalDateTime.now(); }
 }
