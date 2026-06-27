@@ -3,10 +3,11 @@
 <head><meta charset="UTF-8"><title>Hóa đơn</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>@media print { .no-print { display:none; } }</style>
+    <style>@media print { .no-print { display: none !important; } }</style>
 </head>
 <body class="bg-light">
 <div class="container py-4" style="max-width:580px">
+
     <div th:if="${success}" class="alert alert-success no-print" th:text="${success}"></div>
 
     <div class="card shadow border-0">
@@ -17,22 +18,31 @@
         <div class="card-body">
             <div class="row mb-3 text-muted small">
                 <div class="col">
-                    <strong>Mã HĐ:</strong> #<span th:text="${sale.saleId}"></span>
-                    &nbsp;|&nbsp; <span class="text-muted" th:text="${sale.saleCode}"></span>
+                    <strong>Mã HĐ:</strong> <span th:text="${sale.saleCode}"></span>
                 </div>
                 <div class="col text-end">
-                    <strong>Ngày:</strong> <span th:text="${sale.saleDate}"></span>
+                    <strong>Ngày:</strong>
+                    <span th:text="${#temporals.format(sale.saleDate,'dd/MM/yyyy HH:mm')}"></span>
                 </div>
             </div>
+            <div th:if="${sale.customerName != null}" class="small text-muted mb-2">
+                <strong>Khách hàng:</strong> <span th:text="${sale.customerName}"></span>
+                <span th:if="${sale.customerPhone != null}"> — <span th:text="${sale.customerPhone}"></span></span>
+            </div>
 
+            <!-- FIX: dùng sale.details thay vì ${details} vì controller không truyền riêng biến details -->
             <table class="table table-sm table-bordered mb-3">
                 <thead class="table-light">
-                <tr><th>Thuốc</th><th class="text-center">SL</th>
-                    <th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr>
+                <tr>
+                    <th>Thuốc</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end">Thành tiền</th>
+                </tr>
                 </thead>
                 <tbody>
-                <tr th:each="d : ${details}">
-                    <td th:text="'Thuốc #' + ${d.medicineId}"></td>
+                <tr th:each="d : ${sale.details}">
+                    <td th:text="${d.medicineName != null ? d.medicineName : '#' + d.medicineId}"></td>
                     <td class="text-center" th:text="${d.quantity}"></td>
                     <td class="text-end"
                         th:text="${#numbers.formatInteger(d.unitPrice, 1, 'COMMA')} + ' đ'"></td>
@@ -43,11 +53,13 @@
                 <tfoot>
                 <tr class="table-light">
                     <td colspan="3" class="text-end">Tổng tiền hàng</td>
-                    <td class="text-end" th:text="${#numbers.formatInteger(sale.totalAmount, 1, 'COMMA')} + ' đ'"></td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatInteger(sale.totalAmount, 1, 'COMMA')} + ' đ'"></td>
                 </tr>
                 <tr th:if="${sale.discountAmount > 0}">
                     <td colspan="3" class="text-end">Giảm giá</td>
-                    <td class="text-end text-danger" th:text="'- ' + ${#numbers.formatInteger(sale.discountAmount, 1, 'COMMA')} + ' đ'"></td>
+                    <td class="text-end text-danger"
+                        th:text="'- ' + ${#numbers.formatInteger(sale.discountAmount, 1, 'COMMA')} + ' đ'"></td>
                 </tr>
                 <tr class="table-success">
                     <td colspan="3" class="text-end fw-bold">THÀNH TIỀN</td>
@@ -72,6 +84,10 @@
                     <span class="text-primary"
                           th:text="${#numbers.formatInteger(payment.changeAmount, 1, 'COMMA')} + ' đ'"></span>
                 </div>
+                <div class="d-flex justify-content-between text-muted" th:if="${payment.paymentCode != null}">
+                    <span>Mã giao dịch:</span>
+                    <code th:text="${payment.paymentCode}"></code>
+                </div>
             </div>
 
             <div class="text-center text-muted small">Cảm ơn quý khách! Chúc sức khỏe!</div>
@@ -82,8 +98,13 @@
         <button onclick="window.print()" class="btn btn-outline-secondary">
             <i class="fa-solid fa-print me-1"></i>In hóa đơn
         </button>
-        <a href="/sales/cart" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Bán hàng mới</a>
-        <a href="/sales" class="btn btn-outline-primary"><i class="fa-solid fa-list me-1"></i>Lịch sử</a>
+        <a href="/sales/cart" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i>Bán hàng mới
+        </a>
+        <a href="/sales" class="btn btn-outline-primary">
+            <i class="fa-solid fa-list me-1"></i>Lịch sử
+        </a>
     </div>
 </div>
-</body></html>
+</body>
+</html>

@@ -29,6 +29,7 @@ public class SaleController {
         return (AppUser) session.getAttribute("loggedInUser");
     }
 
+    /** Màn hình giỏ hàng / POS chính */
     @GetMapping("/cart")
     public String cart(HttpSession session, Model model) {
         AppUser user = getUser(session);
@@ -43,6 +44,7 @@ public class SaleController {
         if (draft.getCustomerId() != null)
             customerService.findById(draft.getCustomerId())
                     .ifPresent(c -> model.addAttribute("selectedCustomer", c));
+
         if (draft.getPrescriptionId() != null)
             prescriptionService.findById(draft.getPrescriptionId())
                     .ifPresent(p -> model.addAttribute("selectedPrescription", p));
@@ -50,10 +52,11 @@ public class SaleController {
         return "sales/cart";
     }
 
+    /** Thêm thuốc vào đơn */
     @PostMapping("/cart/add")
     public String addItem(@RequestParam Integer saleId,
                           @RequestParam Integer medicineId,
-                          @RequestParam Integer quantity,
+                          @RequestParam(defaultValue = "1") Integer quantity,
                           RedirectAttributes ra) {
         String error = saleService.addItem(saleId, medicineId, quantity);
         if (error != null) ra.addFlashAttribute("error", error);
@@ -61,41 +64,72 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
+    /** Cập nhật số lượng */
     @PostMapping("/cart/update")
     public String updateItem(@RequestParam Integer saleDetailId,
-                             @RequestParam Integer quantity) {
-        saleService.updateItemQuantity(saleDetailId, quantity);
+                             @RequestParam Integer quantity,
+                             RedirectAttributes ra) {
+        try {
+            saleService.updateItemQuantity(saleDetailId, quantity);
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/sales/cart";
     }
 
+    /** Xóa dòng thuốc */
     @PostMapping("/cart/remove")
     public String removeItem(@RequestParam Integer saleDetailId) {
         saleService.removeItem(saleDetailId);
         return "redirect:/sales/cart";
     }
 
+    /** Chọn khách hàng */
     @PostMapping("/cart/set-customer")
-    public String setCustomer(@RequestParam Integer saleId, @RequestParam Integer customerId) {
+    public String setCustomer(@RequestParam Integer saleId,
+                              @RequestParam Integer customerId,
+                              RedirectAttributes ra) {
         saleService.setCustomer(saleId, customerId);
+        ra.addFlashAttribute("success", "Đã chọn khách hàng");
         return "redirect:/sales/cart";
     }
 
+    /** Chọn đơn thuốc */
     @PostMapping("/cart/set-prescription")
-    public String setPrescription(@RequestParam Integer saleId, @RequestParam Integer prescriptionId) {
+    public String setPrescription(@RequestParam Integer saleId,
+                                  @RequestParam Integer prescriptionId,
+                                  RedirectAttributes ra) {
         saleService.setPrescription(saleId, prescriptionId);
+        ra.addFlashAttribute("success", "Đã chọn đơn thuốc");
         return "redirect:/sales/cart";
     }
 
+    /** Hủy đơn DRAFT */
     @PostMapping("/cart/cancel")
     public String cancelDraft(@RequestParam Integer saleId, RedirectAttributes ra) {
-        saleService.cancelDraft(saleId);
-        ra.addFlashAttribute("success", "Đã hủy hóa đơn");
+        try {
+            saleService.cancelDraft(saleId);
+            ra.addFlashAttribute("success", "Đã hủy hóa đơn");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/sales/cart";
     }
 
+    /** Danh sách hóa đơn */
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("sales", saleService.findAll());
-        return "sales/list";
+    public String list(HttpSession session, Model model) {
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
+        // Admin và Manager xem theo chi nhánh; Pharmacist xem theo chi nhánh mình
+        model.addAttribute("sales", saleService.findByBranchId(user.getBranchId()));
+        return "sales/history";
+    }
+
+    /** Chi tiết / in hóa đơn */
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Integer id, Model model) {
+        saleService.findById(id).ifPresent(s -> model.addAttribute("sale", s));
+        return "sales/invoice";
     }
 }

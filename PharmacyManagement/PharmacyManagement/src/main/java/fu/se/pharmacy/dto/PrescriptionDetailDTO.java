@@ -17,7 +17,8 @@ public class PrescriptionDetailDTO {
     @NotNull(message = "Vui lòng chọn thuốc")
     private Integer medicineId;
 
-    private String medicineName; // join từ medicines (output only)
+    private String medicineName;    // FIX: join từ medicines (output only)
+    private String medicineUnit;    // FIX: đơn vị tính (output only)
 
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 1, message = "Số lượng tối thiểu là 1")

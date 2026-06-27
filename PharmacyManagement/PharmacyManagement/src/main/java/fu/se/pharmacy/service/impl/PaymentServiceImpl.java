@@ -1,7 +1,6 @@
 package fu.se.pharmacy.service.impl;
 
 import fu.se.pharmacy.dto.PaymentDTO;
-import fu.se.pharmacy.dto.PaymentResponseDTO;
 import fu.se.pharmacy.entity.Payment;
 import fu.se.pharmacy.entity.PaymentTransaction;
 import fu.se.pharmacy.entity.Sale;
@@ -11,6 +10,7 @@ import fu.se.pharmacy.repository.SaleRepository;
 import fu.se.pharmacy.service.PaymentService;
 import fu.se.pharmacy.service.SaleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired private PaymentRepository paymentRepository;
     @Autowired private PaymentTransactionRepository paymentTransactionRepository;
     @Autowired private SaleRepository saleRepository;
-    @Autowired private SaleService saleService;
+
+    // @Lazy để tránh circular dependency: PaymentService ↔ SaleService
+    @Autowired @Lazy private SaleService saleService;
 
     @Override
     @Transactional
@@ -33,7 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (!"DRAFT".equals(sale.getStatus()))
             throw new RuntimeException("Hóa đơn không ở trạng thái DRAFT");
-        if (dto.getCustomerPaidAmount() < sale.getFinalAmount())
+        if (dto.getCustomerPaidAmount() == null || dto.getCustomerPaidAmount() < sale.getFinalAmount())
             throw new RuntimeException("Tiền khách đưa không đủ. Cần: "
                     + String.format("%,d", sale.getFinalAmount()) + " đ");
 
@@ -50,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         // Hoàn thành sale + trừ kho FIFO
         saleService.completeSale(dto.getSaleId());
 
-        return toResponseDTO(payment);
+        return toDTO(payment);
     }
 
     @Override
@@ -59,14 +61,19 @@ public class PaymentServiceImpl implements PaymentService {
         Sale sale = saleRepository.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
+        // Nếu đã có payment PENDING thì trả về cái cũ
+        Optional<Payment> existing = paymentRepository.findBySaleId(saleId);
+        if (existing.isPresent() && "PENDING".equals(existing.get().getStatus()))
+            return toDTO(existing.get());
+
         Payment payment = new Payment();
         payment.setSaleId(saleId);
         payment.setPaymentMethod("ONLINE");
         payment.setAmount(sale.getFinalAmount());
         payment.setStatus("PENDING");
-        // Trong thực tế gọi API gateway để lấy QR — hiện tại dùng placeholder
-        payment.setNote("QR_" + saleId + "_" + System.currentTimeMillis());
-        return toResponseDTO(paymentRepository.save(payment));
+        // Nội dung QR: trong thực tế gọi API ngân hàng; ở đây dùng mã tham chiếu giả lập
+        payment.setNote("PHARMACY_PAY_" + saleId + "_" + sale.getFinalAmount());
+        return toDTO(paymentRepository.save(payment));
     }
 
     @Override
@@ -78,7 +85,12 @@ public class PaymentServiceImpl implements PaymentService {
         if (!"PENDING".equals(payment.getStatus()))
             throw new RuntimeException("Payment không ở trạng thái PENDING");
         if (!payment.getAmount().equals(amount))
-            throw new RuntimeException("Số tiền callback không khớp");
+            throw new RuntimeException("Số tiền callback không khớp. Kỳ vọng: "
+                    + payment.getAmount() + ", nhận được: " + amount);
+
+        // Chống replay: kiểm tra gatewayCode chưa được xử lý trước đó
+        if (paymentTransactionRepository.existsByGatewayTransactionCode(gatewayCode))
+            throw new RuntimeException("Giao dịch " + gatewayCode + " đã được xử lý trước đó");
 
         // Ghi log transaction
         PaymentTransaction tx = new PaymentTransaction();
@@ -100,12 +112,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Optional<PaymentDTO> findBySaleId(Integer saleId) {
-        return paymentRepository.findBySaleId(saleId).map(this::toResponseDTO);
+        return paymentRepository.findBySaleId(saleId).map(this::toDTO);
     }
 
-    // ===== Converter =====
+    // ========================================================
+    // Converter
+    // ========================================================
 
-    private PaymentDTO toResponseDTO(Payment p) {
+    private PaymentDTO toDTO(Payment p) {
         PaymentDTO dto = new PaymentDTO();
         dto.setPaymentId(p.getPaymentId());
         dto.setSaleId(p.getSaleId());

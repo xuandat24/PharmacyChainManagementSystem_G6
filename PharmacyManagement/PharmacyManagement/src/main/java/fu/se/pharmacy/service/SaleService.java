@@ -16,11 +16,14 @@ public interface SaleService {
     /** Tìm hóa đơn theo ID */
     Optional<SaleDTO> findById(Integer saleId);
 
-    /** Lấy toàn bộ hóa đơn */
+    /** Lấy toàn bộ hóa đơn (sắp xếp mới nhất trước) */
     List<SaleDTO> findAll();
 
     /** Lấy lịch sử hóa đơn của một khách hàng */
     List<SaleDTO> findByCustomerId(Integer customerId);
+
+    /** Lấy hóa đơn theo chi nhánh */
+    List<SaleDTO> findByBranchId(Integer branchId);
 
     /**
      * Thêm thuốc vào hóa đơn DRAFT.
@@ -44,8 +47,9 @@ public interface SaleService {
     void cancelDraft(Integer saleId);
 
     /**
-     * Hoàn thành hóa đơn sau khi thanh toán.
+     * Hoàn thành hóa đơn sau khi thanh toán thành công.
      * Cập nhật status → COMPLETED và trừ tồn kho FIFO.
+     * Chỉ PaymentService được gọi method này.
      */
     void completeSale(Integer saleId);
 }

@@ -2,8 +2,6 @@ package fu.se.pharmacy.service.impl;
 
 import fu.se.pharmacy.dto.SaleDTO;
 import fu.se.pharmacy.dto.SaleDetailDTO;
-import fu.se.pharmacy.dto.SaleDetailResponseDTO;
-import fu.se.pharmacy.dto.SaleResponseDTO;
 import fu.se.pharmacy.entity.*;
 import fu.se.pharmacy.repository.*;
 import fu.se.pharmacy.service.PrescriptionService;
@@ -26,6 +24,14 @@ public class SaleServiceImpl implements SaleService {
     @Autowired private AppUserRepository appUserRepository;
     @Autowired private PrescriptionService prescriptionService;
 
+    // Repository của Người 2 — chỉ đọc, không tự sửa entity
+    @Autowired private MedicineRepository medicineRepository;
+    @Autowired private InventoryBatchRepository inventoryBatchRepository;
+
+    // ========================================================
+    // CRUD cơ bản
+    // ========================================================
+
     @Override
     public SaleDTO getOrCreateDraft(Integer pharmacistId, Integer branchId) {
         List<Sale> drafts = saleRepository.findByPharmacistIdAndStatus(pharmacistId, "DRAFT");
@@ -40,17 +46,25 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     public List<SaleDTO> findAll() {
-        return saleRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+        return saleRepository.findAllByOrderBySaleDateDesc()
+                .stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<SaleDTO> findByCustomerId(Integer customerId) {
-        return saleRepository.findByCustomerId(customerId).stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+        return saleRepository.findByCustomerId(customerId)
+                .stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
+
+    @Override
+    public List<SaleDTO> findByBranchId(Integer branchId) {
+        return saleRepository.findByBranchIdOrderBySaleDateDesc(branchId)
+                .stream().map(this::toResponseDTO).collect(Collectors.toList());
+    }
+
+    // ========================================================
+    // Thao tác giỏ hàng
+    // ========================================================
 
     @Override
     @Transactional
@@ -61,30 +75,35 @@ public class SaleServiceImpl implements SaleService {
 
         Medicine medicine = medicineRepository.findById(medicineId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thuốc"));
-        if (!"ACTIVE".equals(medicine.getStatus())) return "Thuốc ngừng kinh doanh";
+        if (!"ACTIVE".equals(medicine.getStatus())) return "Thuốc đã ngừng kinh doanh";
 
         // Kiểm tra tồn kho
         Integer stock = inventoryBatchRepository.sumStock(sale.getBranchId(), medicineId);
         if (stock == null || stock < quantity)
-            return "Tồn kho không đủ. Hiện có: " + (stock == null ? 0 : stock);
+            return "Tồn kho không đủ. Hiện có: " + (stock == null ? 0 : stock) + " " + medicine.getUnit();
 
-        // Kiểm tra thuốc kê đơn
+        // Kiểm tra thuốc kê đơn (Rx)
         if (Boolean.TRUE.equals(medicine.getRequiresPrescription())) {
             if (sale.getCustomerId() == null)
-                return "Thuốc kê đơn: vui lòng chọn khách hàng trước";
+                return "Thuốc kê đơn [" + medicine.getMedicineName() + "]: vui lòng chọn khách hàng trước";
             if (sale.getPrescriptionId() == null)
-                return "Thuốc kê đơn: vui lòng chọn đơn thuốc";
+                return "Thuốc kê đơn [" + medicine.getMedicineName() + "]: vui lòng chọn đơn thuốc";
             if (!prescriptionService.isValidForSale(sale.getPrescriptionId(), medicineId, quantity))
-                return "Thuốc không có trong đơn hoặc số lượng vượt quá đơn";
+                return "Thuốc không có trong đơn hoặc số lượng vượt quá đơn thuốc";
         }
 
-        // Cộng dồn nếu đã có dòng
+        // Cộng dồn nếu đã có dòng cùng thuốc
         Optional<SaleDetail> existing =
                 saleDetailRepository.findBySaleIdAndMedicineId(saleId, medicineId);
         if (existing.isPresent()) {
             SaleDetail d = existing.get();
-            d.setQuantity(d.getQuantity() + quantity);
-            d.setLineAmount(d.getUnitPrice() * d.getQuantity());
+            int newQty = d.getQuantity() + quantity;
+            // Kiểm tra lại tồn kho cho tổng mới
+            if (stock < newQty)
+                return "Tồn kho không đủ. Đã có " + d.getQuantity() + ", cần thêm " + quantity
+                        + " nhưng chỉ còn " + stock;
+            d.setQuantity(newQty);
+            d.setLineAmount(d.getUnitPrice() * newQty);
             saleDetailRepository.save(d);
         } else {
             SaleDetail d = new SaleDetail();
@@ -143,7 +162,7 @@ public class SaleServiceImpl implements SaleService {
     public void cancelDraft(Integer saleId) {
         Sale sale = saleRepository.findById(saleId).orElseThrow();
         if (!"DRAFT".equals(sale.getStatus()))
-            throw new RuntimeException("Chỉ hủy được hóa đơn DRAFT");
+            throw new RuntimeException("Chỉ hủy được hóa đơn ở trạng thái DRAFT");
         sale.setStatus("VOIDED");
         saleRepository.save(sale);
     }
@@ -157,7 +176,9 @@ public class SaleServiceImpl implements SaleService {
         deductInventoryFifo(sale);
     }
 
-    // ===== Private helpers =====
+    // ========================================================
+    // Private helpers
+    // ========================================================
 
     private Sale createDraft(Integer pharmacistId, Integer branchId) {
         Sale sale = new Sale();
@@ -178,27 +199,41 @@ public class SaleServiceImpl implements SaleService {
         saleRepository.save(sale);
     }
 
-    /** FIFO: trừ lô gần hết hạn nhất trước */
+    /**
+     * FIFO: trừ lô gần hết hạn nhất trước.
+     * Ghi lại inventory_batch_id vào sale_detail để truy vết.
+     */
     private void deductInventoryFifo(Sale sale) {
-        for (SaleDetail detail : saleDetailRepository.findBySaleId(sale.getSaleId())) {
+        List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getSaleId());
+        for (SaleDetail detail : details) {
             List<InventoryBatch> batches = inventoryBatchRepository
                     .findByBranchIdAndMedicineIdAndStatusOrderByExpiryDateAsc(
                             sale.getBranchId(), detail.getMedicineId(), "AVAILABLE");
+
             int remaining = detail.getQuantity();
+            Integer lastBatchId = null;
+
             for (InventoryBatch batch : batches) {
                 if (remaining <= 0) break;
                 int deduct = Math.min(batch.getQuantityOnHand(), remaining);
                 batch.setQuantityOnHand(batch.getQuantityOnHand() - deduct);
                 if (batch.getQuantityOnHand() == 0) batch.setStatus("DISPOSED");
                 inventoryBatchRepository.save(batch);
-                detail.setInventoryBatchId(batch.getInventoryBatchId());
-                saleDetailRepository.save(detail);
+                lastBatchId = batch.getInventoryBatchId();
                 remaining -= deduct;
+            }
+
+            // Ghi lô cuối cùng được trừ vào detail (để audit)
+            if (lastBatchId != null) {
+                detail.setInventoryBatchId(lastBatchId);
+                saleDetailRepository.save(detail);
             }
         }
     }
 
-    // ===== Converters =====
+    // ========================================================
+    // Converters
+    // ========================================================
 
     private SaleDTO toResponseDTO(Sale sale) {
         SaleDTO dto = new SaleDTO();
@@ -215,11 +250,11 @@ public class SaleServiceImpl implements SaleService {
         dto.setFinalAmount(sale.getFinalAmount());
         dto.setNote(sale.getNote());
 
-        // join tên pharmacist
+        // Join tên pharmacist
         appUserRepository.findById(sale.getPharmacistId())
                 .ifPresent(u -> dto.setPharmacistName(u.getFullName()));
 
-        // join thông tin khách hàng
+        // Join thông tin khách hàng
         if (sale.getCustomerId() != null) {
             customerRepository.findById(sale.getCustomerId()).ifPresent(c -> {
                 dto.setCustomerName(c.getFullName());
@@ -228,16 +263,15 @@ public class SaleServiceImpl implements SaleService {
             });
         }
 
-        // join mã đơn thuốc
+        // Join mã đơn thuốc
         if (sale.getPrescriptionId() != null) {
             prescriptionRepository.findById(sale.getPrescriptionId())
                     .ifPresent(p -> dto.setPrescriptionCode(p.getPrescriptionCode()));
         }
 
-        // load chi tiết dòng hàng
-        List<SaleDetailDTO> details = saleDetailRepository.findBySaleId(sale.getSaleId())
-                .stream().map(this::toDetailDTO).collect(Collectors.toList());
-        dto.setDetails(details);
+        // Load chi tiết dòng hàng
+        dto.setDetails(saleDetailRepository.findBySaleId(sale.getSaleId())
+                .stream().map(this::toDetailDTO).collect(Collectors.toList()));
 
         return dto;
     }
@@ -251,10 +285,11 @@ public class SaleServiceImpl implements SaleService {
         dto.setQuantity(d.getQuantity());
         dto.setUnitPrice(d.getUnitPrice());
         dto.setLineAmount(d.getLineAmount());
-        // join tên thuốc
+        // Join tên thuốc và đơn vị
         medicineRepository.findById(d.getMedicineId()).ifPresent(m -> {
             dto.setMedicineName(m.getMedicineName());
             dto.setMedicineUnit(m.getUnit());
+            dto.setRequiresPrescription(m.getRequiresPrescription());
         });
         return dto;
     }

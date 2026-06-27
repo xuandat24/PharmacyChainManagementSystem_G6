@@ -1,10 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8"><title>Chi tiết hóa đơn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>@media print { .no-print { display: none !important; } }</style>
 </head>
-<body>
+<body class="bg-light">
+<div class="container py-4" style="max-width:680px">
 
+    <!-- Nút hành động -->
+    <div class="d-flex gap-2 mb-3 no-print">
+        <a href="/sales" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-dark ms-auto">
+            <i class="fa-solid fa-print me-1"></i>In hóa đơn
+        </button>
+        <a th:if="${sale != null and sale.status == 'COMPLETED'}"
+           th:href="@{/refunds/create/{id}(id=${sale.saleId})}"
+           class="btn btn-outline-warning">
+            <i class="fa-solid fa-rotate-left me-1"></i>Yêu cầu hoàn tiền
+        </a>
+    </div>
+
+    <div th:if="${sale != null}" class="card shadow border-0">
+        <div class="card-header text-white py-3"
+             th:classappend="${sale.status == 'COMPLETED'} ? 'bg-success'
+               : (${sale.status == 'DRAFT'} ? 'bg-warning text-dark'
+               : 'bg-secondary')">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fa-solid fa-receipt me-2"></i>HÓA ĐƠN BÁN HÀNG</h5>
+                <span class="badge bg-white text-dark" th:text="${sale.status}"></span>
+            </div>
+            <small class="opacity-75">Pharmacy Chain Management System</small>
+        </div>
+        <div class="card-body">
+            <!-- Thông tin hóa đơn -->
+            <div class="row mb-3 small">
+                <div class="col-6">
+                    <div><strong>Mã HĐ:</strong> <span th:text="${sale.saleCode}"></span></div>
+                    <div><strong>Dược sĩ:</strong> <span th:text="${sale.pharmacistName}"></span></div>
+                    <div th:if="${sale.customerName != null}">
+                        <strong>Khách hàng:</strong> <span th:text="${sale.customerName}"></span>
+                        <span th:if="${sale.customerPhone != null}" class="text-muted">
+                            — <span th:text="${sale.customerPhone}"></span>
+                        </span>
+                    </div>
+                    <div th:if="${sale.customerAllergyNote != null}"
+                         class="text-danger small">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Dị ứng: <span th:text="${sale.customerAllergyNote}"></span>
+                    </div>
+                </div>
+                <div class="col-6 text-end">
+                    <div><strong>Ngày:</strong>
+                        <span th:text="${#temporals.format(sale.saleDate,'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                    <div th:if="${sale.prescriptionCode != null}">
+                        <strong>Đơn thuốc:</strong>
+                        <span th:text="${sale.prescriptionCode}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Bảng chi tiết -->
+            <table class="table table-sm table-bordered mb-3">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Tên thuốc</th>
+                    <th>ĐVT</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end">Thành tiền</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d, iter : ${sale.details}">
+                    <td th:text="${iter.count}"></td>
+                    <td>
+                        <span th:text="${d.medicineName}"></span>
+                        <span th:if="${d.requiresPrescription}"
+                              class="badge bg-warning text-dark ms-1 small">Rx</span>
+                    </td>
+                    <td class="text-muted small" th:text="${d.medicineUnit}"></td>
+                    <td class="text-center" th:text="${d.quantity}"></td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatInteger(d.unitPrice, 1, 'COMMA')} + ' đ'"></td>
+                    <td class="text-end fw-bold"
+                        th:text="${#numbers.formatInteger(d.lineAmount, 1, 'COMMA')} + ' đ'"></td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr class="table-light">
+                    <td colspan="5" class="text-end">Tổng tiền hàng</td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatInteger(sale.totalAmount, 1, 'COMMA')} + ' đ'"></td>
+                </tr>
+                <tr th:if="${sale.discountAmount > 0}">
+                    <td colspan="5" class="text-end">Giảm giá</td>
+                    <td class="text-end text-danger"
+                        th:text="'- ' + ${#numbers.formatInteger(sale.discountAmount, 1, 'COMMA')} + ' đ'"></td>
+                </tr>
+                <tr class="table-success">
+                    <td colspan="5" class="text-end fw-bold fs-6">THÀNH TIỀN</td>
+                    <td class="text-end fw-bold fs-5"
+                        th:text="${#numbers.formatInteger(sale.finalAmount, 1, 'COMMA')} + ' đ'"></td>
+                </tr>
+                </tfoot>
+            </table>
+
+            <div class="text-center text-muted small py-2">
+                Cảm ơn quý khách! Chúc sức khỏe!
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${sale == null}" class="alert alert-warning">Không tìm thấy hóa đơn.</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

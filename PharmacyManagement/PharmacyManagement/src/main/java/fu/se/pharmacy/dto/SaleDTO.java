@@ -1,49 +1,38 @@
 package fu.se.pharmacy.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO nhận yêu cầu thêm thuốc vào hóa đơn DRAFT.
+ * DTO tổng hợp cho hóa đơn bán hàng.
+ * Dùng làm response (hiển thị giỏ hàng, lịch sử, hóa đơn).
+ * Request thêm thuốc dùng trực tiếp @RequestParam trong Controller.
  */
 @Data
 public class SaleDTO {
 
-    @NotNull(message = "Mã hóa đơn không được để trống")
     private Integer saleId;
+    private String saleCode;
+    private Integer branchId;
+    private Integer pharmacistId;
+    private String pharmacistName;       // join từ app_users
 
-    @NotNull(message = "Vui lòng chọn thuốc")
-    private Integer medicineId;
+    private Integer customerId;
+    private String customerName;         // join từ customers
+    private String customerPhone;
+    private String customerAllergyNote;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 1, message = "Số lượng tối thiểu là 1")
-    private Integer quantity;
+    private Integer prescriptionId;
+    private String prescriptionCode;     // join từ prescriptions
 
+    private LocalDateTime saleDate;
+    private String status;               // DRAFT, COMPLETED, VOIDED, REFUNDED
+    private Integer totalAmount;
+    private Integer discountAmount;
+    private Integer finalAmount;
+    private String note;
 
-        private String saleCode;
-        private Integer branchId;
-        private Integer pharmacistId;
-        private String pharmacistName;    // join từ app_users
-
-        private Integer customerId;
-        private String customerName;      // join từ customers
-        private String customerPhone;
-        private String customerAllergyNote;
-
-        private Integer prescriptionId;
-        private String prescriptionCode;  // join từ prescriptions
-
-        private LocalDateTime saleDate;
-        private String status;
-        private Integer totalAmount;
-        private Integer discountAmount;
-        private Integer finalAmount;
-        private String note;
-
-        private List<SaleDetailDTO> details;
-
+    private List<SaleDetailDTO> details;
 }

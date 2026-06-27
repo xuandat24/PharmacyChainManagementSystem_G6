@@ -2,52 +2,83 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><title>Ghi nhận đơn thuốc</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container py-4" style="max-width:650px">
+<div class="container py-4" style="max-width:680px">
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-success text-white"><h5 class="mb-0">Ghi nhận Đơn thuốc mới</h5></div>
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="fa-solid fa-prescription me-2"></i>Ghi nhận Đơn thuốc mới
+            </h5>
+        </div>
         <div class="card-body">
             <div class="alert alert-info" th:if="${customer != null}">
-                <strong>Khách hàng:</strong> <span th:text="${customer.fullName}"></span>
+                <i class="fa-solid fa-user me-1"></i>
+                <strong th:text="${customer.fullName}"></strong>
                 &nbsp;|&nbsp; SĐT: <span th:text="${customer.phone}"></span>
+                <span th:if="${customer.allergyNote != null}"
+                      class="badge bg-danger ms-2"
+                      th:text="'DỊ ỨNG: ' + ${customer.allergyNote}"></span>
             </div>
-            <form th:action="@{/prescriptions/create}" th:object="${prescription}" method="post">
+
+            <!-- FIX: th:object="${prescriptionDTO}" thay vì "${prescription}" -->
+            <form th:action="@{/prescriptions/create}" th:object="${prescriptionDTO}" method="post">
                 <input type="hidden" th:field="*{customerId}">
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Mã đơn thuốc (trên toa)</label>
-                        <input type="text" th:field="*{prescriptionCode}" class="form-control">
+                        <input type="text" th:field="*{prescriptionCode}" class="form-control"
+                               placeholder="RX-2025-0001">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Tên bác sĩ</label>
-                        <input type="text" th:field="*{doctorName}" class="form-control">
+                        <input type="text" th:field="*{doctorName}" class="form-control"
+                               placeholder="BS. Nguyễn Văn A">
                     </div>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Cơ sở khám bệnh</label>
-                    <input type="text" th:field="*{clinicName}" class="form-control">
+                    <input type="text" th:field="*{clinicName}" class="form-control"
+                           placeholder="Bệnh viện Bạch Mai...">
                 </div>
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Ngày kê đơn <span class="text-danger">*</span></label>
-                        <input type="date" th:field="*{prescriptionDate}" class="form-control" required>
+                        <label class="form-label fw-semibold">
+                            Ngày kê đơn <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" th:field="*{prescriptionDate}" class="form-control"
+                               th:classappend="${#fields.hasErrors('prescriptionDate')} ? 'is-invalid'"
+                               required>
+                        <div th:if="${#fields.hasErrors('prescriptionDate')}"
+                             class="invalid-feedback" th:errors="*{prescriptionDate}"></div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Ngày hết hiệu lực</label>
                         <input type="date" th:field="*{validUntil}" class="form-control">
+                        <div class="form-text">Để trống nếu không có hạn dùng cụ thể.</div>
                     </div>
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-4">
                     <label class="form-label fw-semibold">Ghi chú</label>
-                    <textarea th:field="*{note}" class="form-control" rows="2"></textarea>
+                    <textarea th:field="*{note}" class="form-control" rows="2"
+                              placeholder="Chẩn đoán, lưu ý đặc biệt..."></textarea>
                 </div>
+
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-save me-1"></i>Lưu</button>
-                    <a th:href="@{/prescriptions(customerId=${prescription.customerId})}" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save me-1"></i>Lưu đơn thuốc
+                    </button>
+                    <a th:href="@{/prescriptions(customerId=${prescriptionDTO.customerId})}"
+                       class="btn btn-outline-secondary">Hủy</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-</body></html>
+</body>
+</html>

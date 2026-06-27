@@ -50,7 +50,7 @@ public class CustomerController {
 
     @PostMapping("/create")
     public String saveCreate(@Valid @ModelAttribute("customerDTO") CustomerDTO dto, BindingResult result) {
-        if (result.hasErrors()) return "customer/create";
+        if (result.hasErrors()) return "customers/create";
         customerService.save(dto);
         return "redirect:/customers";
     }

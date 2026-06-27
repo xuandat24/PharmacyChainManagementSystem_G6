@@ -1,9 +1,7 @@
 package fu.se.pharmacy.controller;
 
 import fu.se.pharmacy.dto.PaymentDTO;
-
 import fu.se.pharmacy.dto.SaleDTO;
-
 import fu.se.pharmacy.service.PaymentService;
 import fu.se.pharmacy.service.SaleService;
 import jakarta.validation.Valid;
@@ -21,10 +19,13 @@ public class PaymentController {
     @Autowired private PaymentService paymentService;
     @Autowired private SaleService saleService;
 
+    /** Form thanh toán tiền mặt */
     @GetMapping("/cash/{saleId}")
     public String cashForm(@PathVariable Integer saleId, Model model) {
         SaleDTO sale = saleService.findById(saleId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        if (!"DRAFT".equals(sale.getStatus()))
+            return "redirect:/sales/cart";
         PaymentDTO dto = new PaymentDTO();
         dto.setSaleId(saleId);
         model.addAttribute("sale", sale);
@@ -32,6 +33,7 @@ public class PaymentController {
         return "payments/cash";
     }
 
+    /** Xử lý thanh toán tiền mặt */
     @PostMapping("/cash")
     public String processCash(@Valid @ModelAttribute("paymentDTO") PaymentDTO dto,
                               BindingResult result,
@@ -54,6 +56,7 @@ public class PaymentController {
         }
     }
 
+    /** Trang hóa đơn sau thanh toán */
     @GetMapping("/receipt/{saleId}")
     public String receipt(@PathVariable Integer saleId, Model model) {
         saleService.findById(saleId).ifPresent(s -> model.addAttribute("sale", s));
@@ -61,9 +64,13 @@ public class PaymentController {
         return "payments/receipt";
     }
 
+    /** Form thanh toán online / QR */
     @GetMapping("/online/{saleId}")
     public String onlineForm(@PathVariable Integer saleId, Model model) {
-        SaleDTO sale = saleService.findById(saleId).orElseThrow();
+        SaleDTO sale = saleService.findById(saleId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        if (!"DRAFT".equals(sale.getStatus()))
+            return "redirect:/sales/cart";
         PaymentDTO payment = paymentService.createOnlinePayment(saleId);
         model.addAttribute("sale", sale);
         model.addAttribute("payment", payment);

@@ -6,6 +6,7 @@ import fu.se.pharmacy.entity.Customer;
 import fu.se.pharmacy.entity.Prescription;
 import fu.se.pharmacy.entity.PrescriptionDetail;
 import fu.se.pharmacy.repository.CustomerRepository;
+import fu.se.pharmacy.repository.MedicineRepository;
 import fu.se.pharmacy.repository.PrescriptionDetailRepository;
 import fu.se.pharmacy.repository.PrescriptionRepository;
 import fu.se.pharmacy.service.PrescriptionService;
@@ -22,6 +23,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Autowired private PrescriptionRepository prescriptionRepository;
     @Autowired private PrescriptionDetailRepository prescriptionDetailRepository;
     @Autowired private CustomerRepository customerRepository;
+    @Autowired private MedicineRepository medicineRepository; // FIX: thêm để join tên thuốc
 
     @Override
     public List<PrescriptionDTO> findByCustomerId(Integer customerId) {
@@ -34,7 +36,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public Optional<PrescriptionDTO> findById(Integer prescriptionId) {
         return prescriptionRepository.findById(prescriptionId)
-                .map(p -> toResponseDTO(p, true)); // true = load chi tiết thuốc
+                .map(p -> toResponseDTO(p, true));
     }
 
     @Override
@@ -99,12 +101,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         dto.setNote(p.getNote());
         dto.setCreatedAt(p.getCreatedAt());
 
-        // join tên khách hàng
         customerRepository.findById(p.getCustomerId())
                 .map(Customer::getFullName)
                 .ifPresent(dto::setCustomerName);
 
-        // load chi tiết thuốc nếu cần
         if (withDetails) {
             dto.setDetails(prescriptionDetailRepository.findByPrescriptionId(p.getPrescriptionId())
                     .stream().map(this::toDetailDTO).collect(Collectors.toList()));
@@ -119,6 +119,13 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         dto.setMedicineId(d.getMedicineId());
         dto.setPrescribedQuantity(d.getPrescribedQuantity());
         dto.setDosageInstruction(d.getDosageInstruction());
+
+        // FIX: join tên thuốc để hiển thị trong prescriptions/detail.html
+        medicineRepository.findById(d.getMedicineId()).ifPresent(m -> {
+            dto.setMedicineName(m.getMedicineName());
+            dto.setMedicineUnit(m.getUnit());
+        });
+
         return dto;
     }
 }

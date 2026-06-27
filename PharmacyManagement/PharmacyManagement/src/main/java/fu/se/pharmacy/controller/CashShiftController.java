@@ -22,6 +22,7 @@ public class CashShiftController {
         return (AppUser) session.getAttribute("loggedInUser");
     }
 
+    /** Trang chính: hiển thị ca đang mở + lịch sử ca */
     @GetMapping
     public String list(HttpSession session, Model model) {
         AppUser user = getUser(session);
@@ -30,17 +31,20 @@ public class CashShiftController {
                 cashShiftService.getOpenShift(user.getUserId()).orElse(null));
         model.addAttribute("allShifts",
                 cashShiftService.findByBranchId(user.getBranchId()));
-        return "cash-shifts/detail";
+        return "cash-shifts/open"; // FIX: was "cash-shifts/detail" (template trống)
     }
 
+    /** Mở ca mới */
     @PostMapping("/open")
     public String open(HttpSession session, RedirectAttributes ra) {
         AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         cashShiftService.openShift(user.getUserId(), user.getBranchId());
         ra.addFlashAttribute("success", "Đã mở ca làm việc");
         return "redirect:/cash-shifts";
     }
 
+    /** Form chốt ca */
     @GetMapping("/close/{id}")
     public String closeForm(@PathVariable Integer id, Model model) {
         cashShiftService.findById(id).ifPresent(s -> model.addAttribute("shift", s));
@@ -48,6 +52,7 @@ public class CashShiftController {
         return "cash-shifts/close";
     }
 
+    /** Xử lý chốt ca */
     @PostMapping("/close/{id}")
     public String close(@PathVariable Integer id,
                         @Valid @ModelAttribute("cashShiftDTO") CashShiftDTO dto,
@@ -58,22 +63,31 @@ public class CashShiftController {
             cashShiftService.findById(id).ifPresent(s -> model.addAttribute("shift", s));
             return "cash-shifts/close";
         }
-        CashShiftDTO shift = cashShiftService.closeShift(id, dto);
-        int diff = shift.getDifferenceAmount() == null ? 0 : shift.getDifferenceAmount();
-        if ("PENDING_ADMIN_REVIEW".equals(shift.getStatus())) {
-            ra.addFlashAttribute("warning",
-                    "Chênh lệch lớn (" + String.format("%,d", diff) + " đ). Đang chờ Admin xem xét.");
-        } else {
-            ra.addFlashAttribute("success",
-                    "Đã chốt ca. Chênh lệch: " + String.format("%,d", diff) + " đ. Chờ Manager xác nhận.");
+        try {
+            CashShiftDTO shift = cashShiftService.closeShift(id, dto);
+            int diff = shift.getDifferenceAmount() == null ? 0 : shift.getDifferenceAmount();
+            if ("PENDING_ADMIN_REVIEW".equals(shift.getStatus())) {
+                ra.addFlashAttribute("warning",
+                        "Chênh lệch lớn (" + String.format("%,d", Math.abs(diff)) + " đ). Đang chờ Admin xem xét.");
+            } else {
+                ra.addFlashAttribute("success",
+                        "Đã chốt ca. Chênh lệch: " + String.format("%,d", diff) + " đ. Chờ Manager xác nhận.");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/cash-shifts";
     }
 
+    /** Manager xác nhận ca đã chốt */
     @PostMapping("/confirm/{id}")
     public String confirm(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
-        cashShiftService.confirmShift(id, getUser(session).getUserId());
-        ra.addFlashAttribute("success", "Đã xác nhận ca");
+        try {
+            cashShiftService.confirmShift(id, getUser(session).getUserId());
+            ra.addFlashAttribute("success", "Đã xác nhận ca");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/cash-shifts";
     }
 }

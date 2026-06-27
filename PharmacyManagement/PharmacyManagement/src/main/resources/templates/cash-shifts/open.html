@@ -1,97 +1,103 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Quản lý Ca</title>
+<head>
+    <meta charset="UTF-8"><title>Ca bán hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container py-4">
-    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-    <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+<div class="container py-4" style="max-width:520px">
 
-    <h4 class="mb-4"><i class="fa-solid fa-cash-register text-warning me-2"></i>Quản lý Ca bán hàng</h4>
+    <h4 class="mb-3"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Ca bán hàng</h4>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show">
+        <span th:text="${warning}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
     <!-- Ca đang mở -->
-    <div class="card shadow-sm border-0 mb-4" th:if="${openShift != null}">
-        <div class="card-header bg-warning text-dark fw-bold">
-            <i class="fa-solid fa-door-open me-2"></i>Ca đang mở — #<span th:text="${openShift.cashShiftId}"></span>
-        </div>
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-                <p class="mb-1"><strong>Bắt đầu:</strong> <span th:text="${openShift.openedAt}"></span></p>
-                <p class="mb-0"><strong>Tiền đầu ca:</strong>
-                    <span th:text="${#numbers.formatInteger(openShift.openingCashAmount, 1, 'COMMA')} + ' đ'"></span>
-                </p>
+    <div th:if="${openShift != null}" class="card border-0 shadow-sm mb-3 border-start border-success border-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0 text-success"><i class="fa-solid fa-circle-dot me-2"></i>Ca đang mở</h6>
+                <span class="badge bg-success">OPEN</span>
             </div>
-            <a th:href="@{/cash-shifts/close/{id}(id=${openShift.cashShiftId})}" class="btn btn-danger btn-lg">
-                <i class="fa-solid fa-door-closed me-2"></i>Chốt ca
-            </a>
+            <div class="small text-muted">
+                Mở lúc: <span th:text="${#temporals.format(openShift.openedAt,'dd/MM/yyyy HH:mm')}"></span>
+            </div>
+            <div class="small text-muted">
+                Dược sĩ: <span th:text="${openShift.pharmacistName}"></span>
+            </div>
+            <div class="mt-3">
+                <a th:href="@{/cash-shifts/close/{id}(id=${openShift.cashShiftId})}"
+                   class="btn btn-warning w-100">
+                    <i class="fa-solid fa-door-closed me-2"></i>Chốt ca
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Mở ca mới -->
-    <div class="card shadow-sm border-0 mb-4" th:if="${openShift == null}">
+    <!-- Mở ca mới nếu chưa có -->
+    <div th:if="${openShift == null}" class="card border-0 shadow-sm mb-3">
         <div class="card-body text-center py-4">
-            <p class="text-muted mb-3">Chưa có ca làm việc nào đang mở</p>
+            <i class="fa-solid fa-business-time fa-3x text-muted opacity-25 mb-3"></i>
+            <p class="text-muted">Bạn chưa có ca làm việc nào đang mở.</p>
             <form th:action="@{/cash-shifts/open}" method="post">
-                <button type="submit" class="btn btn-success btn-lg">
-                    <i class="fa-solid fa-door-open me-2"></i>Mở ca mới
+                <button type="submit" class="btn btn-primary px-5">
+                    <i class="fa-solid fa-play me-2"></i>Bắt đầu ca làm việc
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Lịch sử -->
-    <div class="card shadow-sm border-0">
+    <!-- Lịch sử ca gần đây -->
+    <div th:if="${!#lists.isEmpty(allShifts)}" class="card border-0 shadow-sm">
         <div class="card-header bg-white fw-bold">Lịch sử ca</div>
         <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-sm align-middle mb-0">
                 <thead class="table-light">
                 <tr>
-                    <th>Ca</th><th>Bắt đầu</th><th>Kết thúc</th>
-                    <th class="text-end">Hệ thống</th><th class="text-end">Thực tế</th>
-                    <th class="text-end">Chênh lệch</th><th class="text-center">Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
+                    <th>Mở lúc</th>
+                    <th>Đóng lúc</th>
+                    <th class="text-end">Chênh lệch</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="s : ${allShifts}">
-                    <td class="fw-bold">#<span th:text="${s.cashShiftId}"></span></td>
-                    <td class="small" th:text="${s.openedAt}"></td>
-                    <td class="small" th:text="${s.closedAt ?: '-'}"></td>
-                    <td class="text-end"
-                        th:text="${s.systemCashAmount != null ? #numbers.formatInteger(s.systemCashAmount, 1, 'COMMA') + ' đ' : '-'}"></td>
-                    <td class="text-end"
-                        th:text="${s.actualCashAmount != null ? #numbers.formatInteger(s.actualCashAmount, 1, 'COMMA') + ' đ' : '-'}"></td>
-                    <td class="text-end">
-                        <span th:if="${s.differenceAmount != null}"
-                              th:class="${s.differenceAmount >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}"
-                              th:text="${#numbers.formatInteger(s.differenceAmount, 1, 'COMMA')} + ' đ'"></span>
-                        <span th:unless="${s.differenceAmount != null}">-</span>
+                <tr th:each="s : ${allShifts}" th:if="${s.status != 'OPEN'}">
+                    <td class="small" th:text="${#temporals.format(s.openedAt,'dd/MM HH:mm')}"></td>
+                    <td class="small" th:text="${s.closedAt != null ? #temporals.format(s.closedAt,'dd/MM HH:mm') : '-'}"></td>
+                    <td class="text-end small"
+                        th:classappend="${s.differenceAmount != null and s.differenceAmount < 0} ? 'text-danger' : 'text-success'"
+                        th:text="${s.differenceAmount != null ? #numbers.formatInteger(s.differenceAmount, 1, 'COMMA') + ' đ' : '-'}">
                     </td>
                     <td class="text-center">
-                        <span th:switch="${s.status}">
-                            <span th:case="'OPEN'" class="badge bg-warning text-dark">Đang mở</span>
-                            <span th:case="'CLOSED'" class="badge bg-info text-dark">Chờ xác nhận</span>
-                            <span th:case="'PENDING_ADMIN_REVIEW'" class="badge bg-danger">Cần Admin</span>
-                            <span th:case="'CONFIRMED'" class="badge bg-success">Đã xác nhận</span>
-                        </span>
+                        <span class="badge"
+                              th:classappend="${s.status == 'CONFIRMED'} ? 'bg-success'
+                                : (${s.status == 'PENDING_ADMIN_REVIEW'} ? 'bg-danger'
+                                : 'bg-secondary')"
+                              th:text="${s.status}"></span>
                     </td>
-                    <td class="text-center">
+                    <td>
                         <form th:if="${s.status == 'CLOSED'}"
-                              th:action="@{/cash-shifts/confirm/{id}(id=${s.cashShiftId})}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-success"
-                                    onclick="return confirm('Xác nhận ca này?')">Xác nhận</button>
+                              th:action="@{/cash-shifts/confirm/{id}(id=${s.cashShiftId})}"
+                              method="post">
+                            <button type="submit" class="btn btn-xs btn-sm btn-outline-success py-0 px-1 small">
+                                Xác nhận
+                            </button>
                         </form>
                     </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(allShifts)}">
-                    <td colspan="8" class="text-center text-muted py-4">Chưa có ca nào</td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-</body></html>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

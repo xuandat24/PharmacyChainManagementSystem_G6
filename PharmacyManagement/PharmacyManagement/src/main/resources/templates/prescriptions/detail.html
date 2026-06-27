@@ -5,12 +5,15 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container py-4">
+<div class="container py-4" style="max-width:800px">
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fa-solid fa-prescription me-2"></i>
+            <h5 class="mb-0">
+                <i class="fa-solid fa-prescription me-2"></i>
                 Đơn thuốc #<span th:text="${prescription.prescriptionId}"></span>
-                <small th:text="'(' + ${prescription.prescriptionCode} + ')'" class="opacity-75"></small>
+                <small th:if="${prescription.prescriptionCode != null}"
+                       th:text="'(' + ${prescription.prescriptionCode} + ')'"
+                       class="opacity-75"></small>
             </h5>
             <span th:if="${prescription.valid}" class="badge bg-light text-success fs-6">Còn hiệu lực</span>
             <span th:unless="${prescription.valid}" class="badge bg-danger fs-6">Hết hạn</span>
@@ -23,28 +26,44 @@
             </div>
             <div class="col-md-6">
                 <p><strong>Ngày kê:</strong> <span th:text="${prescription.prescriptionDate}"></span></p>
-                <p><strong>Hết hạn:</strong> <span th:text="${prescription.validUntil}"></span></p>
-                <p th:if="${prescription.note != null}"><strong>Ghi chú:</strong> <span th:text="${prescription.note}"></span></p>
+                <p><strong>Hết hạn:</strong>
+                    <span th:if="${prescription.validUntil != null}"
+                          th:text="${prescription.validUntil}"></span>
+                    <span th:unless="${prescription.validUntil != null}" class="text-muted">Không giới hạn</span>
+                </p>
+                <p th:if="${prescription.note != null}">
+                    <strong>Ghi chú:</strong> <span th:text="${prescription.note}"></span>
+                </p>
             </div>
         </div>
     </div>
 
     <!-- Danh sách thuốc trong đơn -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white fw-bold">Thuốc được kê</div>
+        <div class="card-header bg-white fw-bold d-flex justify-content-between">
+            <span>Thuốc được kê</span>
+        </div>
         <div class="card-body p-0">
             <table class="table mb-0">
                 <thead class="table-light">
-                <tr><th>Mã thuốc</th><th>Số lượng kê</th><th>Hướng dẫn dùng</th></tr>
+                <tr>
+                    <th>#</th>
+                    <th>Tên thuốc</th>     <!-- FIX: hiển thị tên thay vì medicineId -->
+                    <th>ĐVT</th>
+                    <th class="text-center">Số lượng kê</th>
+                    <th>Hướng dẫn dùng</th>
+                </tr>
                 </thead>
                 <tbody>
-                <tr th:each="d : ${details}">
-                    <td th:text="${d.medicineId}"></td>
-                    <td th:text="${d.prescribedQuantity}"></td>
-                    <td th:text="${d.dosageInstruction}"></td>
+                <tr th:each="d, iter : ${details}">
+                    <td class="text-muted small" th:text="${iter.count}"></td>
+                    <td class="fw-semibold" th:text="${d.medicineName != null ? d.medicineName : '#' + d.medicineId}"></td>
+                    <td class="text-muted small" th:text="${d.medicineUnit}"></td>
+                    <td class="text-center" th:text="${d.prescribedQuantity}"></td>
+                    <td class="text-muted small" th:text="${d.dosageInstruction}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(details)}">
-                    <td colspan="3" class="text-center text-muted py-3">Chưa có thuốc nào</td>
+                    <td colspan="5" class="text-center text-muted py-3">Chưa có thuốc nào trong đơn</td>
                 </tr>
                 </tbody>
             </table>
@@ -53,32 +72,46 @@
 
     <!-- Form thêm thuốc vào đơn -->
     <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header bg-white fw-bold">Thêm thuốc vào đơn</div>
+        <div class="card-header bg-white fw-bold">
+            <i class="fa-solid fa-plus me-1 text-success"></i>Thêm thuốc vào đơn
+        </div>
         <div class="card-body">
             <form th:action="@{/prescriptions/{id}/add-medicine(id=${prescription.prescriptionId})}" method="post">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-3">
-                        <label class="form-label small">Mã thuốc (medicine_id)</label>
-                        <input type="number" name="medicineId" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small">Số lượng kê</label>
-                        <input type="number" name="prescribedQuantity" class="form-control" required min="1">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small">Hướng dẫn sử dụng</label>
-                        <input type="text" name="dosageInstruction" class="form-control" placeholder="Uống sau ăn, 2 viên/lần...">
+                        <label class="form-label small fw-semibold">Medicine ID</label>
+                        <input type="number" name="medicineId" class="form-control" required
+                               placeholder="VD: 1">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-success w-100">+ Thêm</button>
+                        <label class="form-label small fw-semibold">Số lượng kê</label>
+                        <input type="number" name="prescribedQuantity" class="form-control"
+                               required min="1" value="1">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold">Hướng dẫn sử dụng</label>
+                        <input type="text" name="dosageInstruction" class="form-control"
+                               placeholder="Uống sau ăn, 2 viên/lần, ngày 3 lần...">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fa-solid fa-plus me-1"></i>Thêm
+                        </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <a th:href="@{/prescriptions(customerId=${prescription.customerId})}" class="btn btn-secondary">
-        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
-    </a>
+    <div class="d-flex gap-2">
+        <a th:href="@{/prescriptions(customerId=${prescription.customerId})}"
+           class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
+        </a>
+        <a href="/sales/cart" class="btn btn-primary">
+            <i class="fa-solid fa-cart-shopping me-1"></i>Bán hàng
+        </a>
+    </div>
 </div>
-</body></html>
+</body>
+</html>
