@@ -22,6 +22,6 @@ public class PrescriptionDetail {
     @Column(name = "prescribed_quantity", nullable = false)
     private Integer prescribedQuantity;
 
-    @Column(name = "dosage_instruction")
+    @Column(name = "dosage_instruction", columnDefinition = "NVARCHAR(255)")
     private String dosageInstruction;
 }

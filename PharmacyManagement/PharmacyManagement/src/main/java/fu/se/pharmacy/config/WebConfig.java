@@ -15,7 +15,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/login", "/logout", "/css/**", "/images/**", "/js/**");
-
+                .excludePathPatterns(
+                        "/login", "/logout",
+                        // BUG FIX 6: /api/payment/callback bị AuthInterceptor chặn
+                        // → gateway gọi callback nhận 302 redirect to /login
+                        "/api/**",
+                        "/css/**", "/js/**", "/images/**",
+                        "/favicon.ico"
+                );
     }
 }

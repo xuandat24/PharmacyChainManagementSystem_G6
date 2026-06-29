@@ -2,6 +2,7 @@ package fu.se.pharmacy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,21 +18,20 @@ public class RefundRequestDTO {
     @NotNull(message = "Mã hóa đơn không được để trống")
     private Integer saleId;
 
-    private String saleCode;          // join từ sales
+    @NotBlank(message = "Vui lòng nhập lý do hoàn tiền")
+    @Size(min = 10, max = 500, message = "Lý do hoàn tiền phải từ 10 đến 500 ký tự")
+    private String reason;
+
+    // Output fields
+    private String  saleCode;
     private Integer requestedBy;
-    private String requestedByName;   // join từ app_users
+    private String  requestedByName;
     private Integer approvedBy;
-    private String approvedByName;    // join từ app_users
+    private String  approvedByName;
     private LocalDateTime requestedAt;
     private LocalDateTime approvedAt;
     private Integer refundAmount;
-
-    @NotBlank(message = "Vui lòng nhập lý do hoàn tiền")
-    private String reason;
-
-    private String status; // PENDING, APPROVED, REJECTED, COMPLETED
-
-    // Thông tin hóa đơn gốc (để hiển thị trong form)
+    private String  status;
     private Integer saleTotal;
-    private String paymentMethod;     // CASH hoặc ONLINE
+    private String  paymentMethod;
 }

@@ -32,11 +32,11 @@ public class RefundRequest {
     @Column(name = "refund_amount", nullable = false)
     private Integer refundAmount = 0;
 
-    @Column(name = "reason", nullable = false)
+    @Column(name = "reason", nullable = false, columnDefinition = "NVARCHAR(500)")
     private String reason;
 
-    @Column(name = "status", nullable = false)
-    private String status = "PENDING"; // PENDING, APPROVED, REJECTED, COMPLETED
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "PENDING";
 
     @PrePersist
     protected void onCreate() { this.requestedAt = LocalDateTime.now(); }

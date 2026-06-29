@@ -1,3 +1,4 @@
+// ===== Sale.java =====
 package fu.se.pharmacy.entity;
 
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ public class Sale {
     @Column(name = "sale_id")
     private Integer saleId;
 
-    @Column(name = "sale_code", nullable = false, unique = true)
+    @Column(name = "sale_code", nullable = false, unique = true, length = 50)
     private String saleCode;
 
     @Column(name = "branch_id", nullable = false)
@@ -32,8 +33,8 @@ public class Sale {
     @Column(name = "sale_date", nullable = false)
     private LocalDateTime saleDate;
 
-    @Column(name = "status", nullable = false)
-    private String status = "DRAFT"; // DRAFT, COMPLETED, VOIDED, REFUNDED
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "DRAFT";
 
     @Column(name = "total_amount", nullable = false)
     private Integer totalAmount = 0;
@@ -44,7 +45,7 @@ public class Sale {
     @Column(name = "final_amount", nullable = false)
     private Integer finalAmount = 0;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @PrePersist

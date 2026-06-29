@@ -23,7 +23,6 @@ public class RefundServiceImpl implements RefundService {
     @Autowired private InventoryBatchRepository inventoryBatchRepository;
     @Autowired private AppUserRepository appUserRepository;
 
-    // Hạn mức Manager duyệt (2.000.000 đ)
     private static final int MANAGER_LIMIT = 2_000_000;
 
     @Override
@@ -32,13 +31,12 @@ public class RefundServiceImpl implements RefundService {
         Sale sale = saleRepository.findById(dto.getSaleId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         if (!"COMPLETED".equals(sale.getStatus()))
-            throw new RuntimeException("Chỉ hoàn tiền hóa đơn đã hoàn thành");
+            throw new RuntimeException("Chỉ hoàn tiền hóa đơn đã hoàn thành (COMPLETED)");
 
-        // Kiểm tra chưa có yêu cầu hoàn tiền đang chờ
         boolean hasPending = refundRequestRepository.findBySaleId(dto.getSaleId())
                 .stream().anyMatch(r -> "PENDING".equals(r.getStatus()));
         if (hasPending)
-            throw new RuntimeException("Hóa đơn này đã có yêu cầu hoàn tiền đang chờ xử lý");
+            throw new RuntimeException("Hóa đơn này đã có yêu cầu hoàn tiền đang chờ xử lý (PENDING)");
 
         RefundRequest req = new RefundRequest();
         req.setSaleId(dto.getSaleId());
@@ -61,7 +59,8 @@ public class RefundServiceImpl implements RefundService {
             throw new RuntimeException("Số tiền vượt hạn mức Manager ("
                     + String.format("%,d", MANAGER_LIMIT) + " đ). Cần Admin duyệt.");
 
-        Optional<Payment> payment = paymentRepository.findBySaleId(req.getSaleId());
+        // FIX: dùng findLatestBySaleId thay vì findBySaleId (tránh NonUniqueResult)
+        Optional<Payment> payment = paymentRepository.findLatestBySaleId(req.getSaleId());
         if (payment.isPresent() && "ONLINE".equals(payment.get().getPaymentMethod()))
             throw new RuntimeException("Thanh toán online cần Admin duyệt.");
 
@@ -118,16 +117,14 @@ public class RefundServiceImpl implements RefundService {
         req.setApprovedAt(LocalDateTime.now());
         refundRequestRepository.save(req);
 
-        // Chuyển sale → REFUNDED
         saleRepository.findById(req.getSaleId()).ifPresent(sale -> {
             sale.setStatus("REFUNDED");
             saleRepository.save(sale);
-            // Hoàn lại tồn kho (nhập lại lô đã trừ)
             restoreInventory(sale);
         });
 
-        // Cập nhật payment → REFUNDED
-        paymentRepository.findBySaleId(req.getSaleId()).ifPresent(p -> {
+        // FIX: dùng findLatestBySaleId thay vì findBySaleId (tránh NonUniqueResult)
+        paymentRepository.findLatestBySaleId(req.getSaleId()).ifPresent(p -> {
             p.setStatus("REFUNDED");
             paymentRepository.save(p);
         });
@@ -135,17 +132,12 @@ public class RefundServiceImpl implements RefundService {
         return toDTO(req);
     }
 
-    /**
-     * Khôi phục tồn kho khi hoàn tiền.
-     * Cộng ngược lại số lượng vào đúng lô đã trừ lúc bán.
-     */
     private void restoreInventory(Sale sale) {
         List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getSaleId());
         for (SaleDetail detail : details) {
             if (detail.getInventoryBatchId() != null) {
                 inventoryBatchRepository.findById(detail.getInventoryBatchId()).ifPresent(batch -> {
                     batch.setQuantityOnHand(batch.getQuantityOnHand() + detail.getQuantity());
-                    // Nếu lô đã DISPOSED thì khôi phục về AVAILABLE
                     if ("DISPOSED".equals(batch.getStatus())) batch.setStatus("AVAILABLE");
                     inventoryBatchRepository.save(batch);
                 });
@@ -181,7 +173,8 @@ public class RefundServiceImpl implements RefundService {
             dto.setSaleTotal(s.getFinalAmount());
         });
 
-        paymentRepository.findBySaleId(r.getSaleId())
+        // FIX: dùng findLatestBySaleId thay vì findBySaleId
+        paymentRepository.findLatestBySaleId(r.getSaleId())
                 .ifPresent(p -> dto.setPaymentMethod(p.getPaymentMethod()));
 
         return dto;

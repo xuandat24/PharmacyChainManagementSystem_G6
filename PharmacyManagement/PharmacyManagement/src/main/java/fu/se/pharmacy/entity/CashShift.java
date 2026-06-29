@@ -38,8 +38,8 @@ public class CashShift {
     @Column(name = "difference_amount")
     private Integer differenceAmount;
 
-    @Column(name = "status", nullable = false)
-    private String status = "OPEN"; // OPEN, CLOSED, PENDING_ADMIN_REVIEW, CONFIRMED
+    @Column(name = "status", nullable = false, length = 30)
+    private String status = "OPEN";
 
     @Column(name = "manager_confirmed_by")
     private Integer managerConfirmedBy;
@@ -47,7 +47,7 @@ public class CashShift {
     @Column(name = "manager_confirmed_at")
     private LocalDateTime managerConfirmedAt;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @PrePersist

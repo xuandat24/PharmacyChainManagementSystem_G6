@@ -24,14 +24,12 @@ public class RefundController {
         return (AppUser) session.getAttribute("loggedInUser");
     }
 
-    /** Danh sách tất cả yêu cầu hoàn tiền */
     @GetMapping
     public String list(Model model) {
         model.addAttribute("refunds", refundService.findAll());
         return "refunds/history";
     }
 
-    /** Danh sách yêu cầu đang chờ duyệt */
     @GetMapping("/pending")
     public String pending(Model model) {
         model.addAttribute("refunds", refundService.findPending());
@@ -39,7 +37,6 @@ public class RefundController {
         return "refunds/history";
     }
 
-    /** Form tạo yêu cầu hoàn tiền */
     @GetMapping("/create/{saleId}")
     public String createForm(@PathVariable Integer saleId, Model model) {
         saleService.findById(saleId).ifPresent(s -> model.addAttribute("sale", s));
@@ -49,7 +46,6 @@ public class RefundController {
         return "refunds/request";
     }
 
-    /** Xử lý tạo yêu cầu hoàn tiền */
     @PostMapping("/create")
     public String create(@Valid @ModelAttribute("refundDTO") RefundRequestDTO dto,
                          BindingResult result,
@@ -58,10 +54,13 @@ public class RefundController {
                          RedirectAttributes ra) {
         if (result.hasErrors()) {
             saleService.findById(dto.getSaleId()).ifPresent(s -> model.addAttribute("sale", s));
-            return "refunds/request";  // fix typo: dùng đúng path
+            return "refunds/request";
         }
+        // BUG FIX 5: getUser NPE - kiểm tra null trước khi dùng
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         try {
-            refundService.createRequest(dto, getUser(session).getUserId());
+            refundService.createRequest(dto, user.getUserId());
             ra.addFlashAttribute("success", "Đã gửi yêu cầu hoàn tiền. Chờ duyệt.");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -69,13 +68,15 @@ public class RefundController {
         return "redirect:/refunds";
     }
 
-    /** Manager duyệt */
     @PostMapping("/approve/{id}")
     public String approveManager(@PathVariable Integer id,
                                  HttpSession session,
                                  RedirectAttributes ra) {
+        // BUG FIX 5: null check
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         try {
-            refundService.approveByManager(id, getUser(session).getUserId());
+            refundService.approveByManager(id, user.getUserId());
             ra.addFlashAttribute("success", "Đã duyệt hoàn tiền");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -83,13 +84,14 @@ public class RefundController {
         return "redirect:/refunds";
     }
 
-    /** Admin duyệt */
     @PostMapping("/approve-admin/{id}")
     public String approveAdmin(@PathVariable Integer id,
                                HttpSession session,
                                RedirectAttributes ra) {
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         try {
-            refundService.approveByAdmin(id, getUser(session).getUserId());
+            refundService.approveByAdmin(id, user.getUserId());
             ra.addFlashAttribute("success", "Admin đã duyệt hoàn tiền. Tồn kho đã được khôi phục.");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -97,13 +99,14 @@ public class RefundController {
         return "redirect:/refunds";
     }
 
-    /** Từ chối */
     @PostMapping("/reject/{id}")
     public String reject(@PathVariable Integer id,
                          HttpSession session,
                          RedirectAttributes ra) {
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         try {
-            refundService.reject(id, getUser(session).getUserId());
+            refundService.reject(id, user.getUserId());
             ra.addFlashAttribute("success", "Đã từ chối yêu cầu hoàn tiền");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());

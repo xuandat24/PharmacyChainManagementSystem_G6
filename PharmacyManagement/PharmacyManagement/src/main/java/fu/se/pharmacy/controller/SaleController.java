@@ -29,11 +29,20 @@ public class SaleController {
         return (AppUser) session.getAttribute("loggedInUser");
     }
 
-    /** Màn hình giỏ hàng / POS chính */
     @GetMapping("/cart")
     public String cart(HttpSession session, Model model) {
         AppUser user = getUser(session);
         if (user == null) return "redirect:/login";
+
+        // BUG FIX 8: ADMIN không có branchId → createDraft với branchId=null
+        // → SQL NOT NULL constraint fail khi insert sale
+        if (user.getBranchId() == null) {
+            model.addAttribute("error",
+                    "Tài khoản Admin không thuộc chi nhánh nào. Vui lòng dùng tài khoản Pharmacist để bán hàng.");
+            model.addAttribute("sale", null);
+            model.addAttribute("medicines", List.of());
+            return "sales/cart";
+        }
 
         SaleDTO draft = saleService.getOrCreateDraft(user.getUserId(), user.getBranchId());
         List<Medicine> medicines = medicineRepository.findByStatus("ACTIVE");
@@ -52,7 +61,6 @@ public class SaleController {
         return "sales/cart";
     }
 
-    /** Thêm thuốc vào đơn */
     @PostMapping("/cart/add")
     public String addItem(@RequestParam Integer saleId,
                           @RequestParam Integer medicineId,
@@ -64,7 +72,6 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
-    /** Cập nhật số lượng */
     @PostMapping("/cart/update")
     public String updateItem(@RequestParam Integer saleDetailId,
                              @RequestParam Integer quantity,
@@ -77,14 +84,12 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
-    /** Xóa dòng thuốc */
     @PostMapping("/cart/remove")
     public String removeItem(@RequestParam Integer saleDetailId) {
         saleService.removeItem(saleDetailId);
         return "redirect:/sales/cart";
     }
 
-    /** Chọn khách hàng */
     @PostMapping("/cart/set-customer")
     public String setCustomer(@RequestParam Integer saleId,
                               @RequestParam Integer customerId,
@@ -94,7 +99,6 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
-    /** Chọn đơn thuốc */
     @PostMapping("/cart/set-prescription")
     public String setPrescription(@RequestParam Integer saleId,
                                   @RequestParam Integer prescriptionId,
@@ -104,7 +108,6 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
-    /** Hủy đơn DRAFT */
     @PostMapping("/cart/cancel")
     public String cancelDraft(@RequestParam Integer saleId, RedirectAttributes ra) {
         try {
@@ -116,17 +119,20 @@ public class SaleController {
         return "redirect:/sales/cart";
     }
 
-    /** Danh sách hóa đơn */
     @GetMapping
     public String list(HttpSession session, Model model) {
         AppUser user = getUser(session);
         if (user == null) return "redirect:/login";
-        // Admin và Manager xem theo chi nhánh; Pharmacist xem theo chi nhánh mình
-        model.addAttribute("sales", saleService.findByBranchId(user.getBranchId()));
+        // BUG FIX 8b: ADMIN (branchId=null) → findByBranchId(null) trả về rỗng
+        // → dùng findAll() cho ADMIN
+        if (user.getBranchId() == null) {
+            model.addAttribute("sales", saleService.findAll());
+        } else {
+            model.addAttribute("sales", saleService.findByBranchId(user.getBranchId()));
+        }
         return "sales/history";
     }
 
-    /** Chi tiết / in hóa đơn */
     @GetMapping("/{id}")
     public String detail(@PathVariable Integer id, Model model) {
         saleService.findById(id).ifPresent(s -> model.addAttribute("sale", s));

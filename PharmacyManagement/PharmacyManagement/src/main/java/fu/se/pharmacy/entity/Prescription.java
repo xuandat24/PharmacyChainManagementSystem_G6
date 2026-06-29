@@ -18,13 +18,13 @@ public class Prescription {
     @Column(name = "customer_id", nullable = false)
     private Integer customerId;
 
-    @Column(name = "prescription_code")
+    @Column(name = "prescription_code", length = 50)
     private String prescriptionCode;
 
-    @Column(name = "doctor_name")
+    @Column(name = "doctor_name", columnDefinition = "NVARCHAR(120)")
     private String doctorName;
 
-    @Column(name = "clinic_name")
+    @Column(name = "clinic_name", columnDefinition = "NVARCHAR(200)")
     private String clinicName;
 
     @Column(name = "prescription_date")
@@ -33,7 +33,7 @@ public class Prescription {
     @Column(name = "valid_until")
     private LocalDate validUntil;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @Column(name = "created_by", nullable = false)

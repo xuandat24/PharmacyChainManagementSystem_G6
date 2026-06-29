@@ -26,12 +26,10 @@ public class CashShiftServiceImpl implements CashShiftService {
     @Autowired private PaymentRepository paymentRepository;
     @Autowired private AppUserRepository appUserRepository;
 
-    // Ngưỡng chênh lệch cần Admin xem xét (500.000 đ)
     private static final int DIFF_THRESHOLD = 500_000;
 
     @Override
     public CashShiftDTO openShift(Integer pharmacistId, Integer branchId) {
-        // Nếu đã có ca OPEN thì trả về ca đó
         Optional<CashShift> existing =
                 cashShiftRepository.findByPharmacistIdAndStatus(pharmacistId, "OPEN");
         if (existing.isPresent()) return toResponseDTO(existing.get());
@@ -53,14 +51,16 @@ public class CashShiftServiceImpl implements CashShiftService {
         if (!"OPEN".equals(shift.getStatus()))
             throw new RuntimeException("Ca không ở trạng thái OPEN");
 
-        // Tính doanh thu tiền mặt hệ thống trong ca này
         int systemCash = shift.getOpeningCashAmount();
         List<Sale> completedSales = saleRepository.findByBranchIdOrderBySaleDateDesc(shift.getBranchId());
         for (Sale sale : completedSales) {
             if (!"COMPLETED".equals(sale.getStatus())) continue;
             if (sale.getSaleDate() == null || sale.getSaleDate().isBefore(shift.getOpenedAt())) continue;
-            Optional<Payment> payment = paymentRepository.findBySaleId(sale.getSaleId());
-            if (payment.isPresent() && "CASH".equals(payment.get().getPaymentMethod())
+
+            // FIX: dùng findLatestBySaleId thay vì findBySaleId (tránh NonUniqueResult)
+            Optional<Payment> payment = paymentRepository.findLatestBySaleId(sale.getSaleId());
+            if (payment.isPresent()
+                    && "CASH".equals(payment.get().getPaymentMethod())
                     && "PAID".equals(payment.get().getStatus())) {
                 systemCash += sale.getFinalAmount();
             }
@@ -74,7 +74,6 @@ public class CashShiftServiceImpl implements CashShiftService {
         shift.setDifferenceAmount(diff);
         shift.setClosedAt(LocalDateTime.now());
         shift.setNote(dto.getNote());
-        // Chênh lệch lớn → cần Admin; bình thường → chờ Manager xác nhận
         shift.setStatus(Math.abs(diff) > DIFF_THRESHOLD ? "PENDING_ADMIN_REVIEW" : "CLOSED");
 
         return toResponseDTO(cashShiftRepository.save(shift));
@@ -103,6 +102,12 @@ public class CashShiftServiceImpl implements CashShiftService {
     }
 
     @Override
+    public List<CashShiftDTO> findAll() {
+        return cashShiftRepository.findAll()
+                .stream().map(this::toResponseDTO).collect(Collectors.toList());
+    }
+
+    @Override
     public List<CashShiftDTO> findPendingAdminReview() {
         return cashShiftRepository.findByStatus("PENDING_ADMIN_REVIEW")
                 .stream().map(this::toResponseDTO).collect(Collectors.toList());
@@ -112,8 +117,6 @@ public class CashShiftServiceImpl implements CashShiftService {
     public Optional<CashShiftDTO> findById(Integer shiftId) {
         return cashShiftRepository.findById(shiftId).map(this::toResponseDTO);
     }
-
-    // ===== Converter =====
 
     private CashShiftDTO toResponseDTO(CashShift s) {
         CashShiftDTO dto = new CashShiftDTO();
@@ -131,11 +134,8 @@ public class CashShiftServiceImpl implements CashShiftService {
         dto.setManagerConfirmedAt(s.getManagerConfirmedAt());
         dto.setNote(s.getNote());
 
-        // join tên pharmacist
         appUserRepository.findById(s.getPharmacistId())
                 .ifPresent(u -> dto.setPharmacistName(u.getFullName()));
-
-        // join tên manager
         if (s.getManagerConfirmedBy() != null) {
             appUserRepository.findById(s.getManagerConfirmedBy())
                     .ifPresent(u -> dto.setManagerName(u.getFullName()));

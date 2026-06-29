@@ -12,6 +12,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/cash-shifts")
 public class CashShiftController {
@@ -22,29 +24,40 @@ public class CashShiftController {
         return (AppUser) session.getAttribute("loggedInUser");
     }
 
-    /** Trang chính: hiển thị ca đang mở + lịch sử ca */
     @GetMapping
     public String list(HttpSession session, Model model) {
         AppUser user = getUser(session);
         if (user == null) return "redirect:/login";
+
         model.addAttribute("openShift",
                 cashShiftService.getOpenShift(user.getUserId()).orElse(null));
-        model.addAttribute("allShifts",
-                cashShiftService.findByBranchId(user.getBranchId()));
-        return "cash-shifts/open"; // FIX: was "cash-shifts/detail" (template trống)
+
+        // FIX: Admin (branchId=null) → findByBranchId(null) trả về rỗng
+        // → Admin phải dùng findAll hoặc method riêng
+        List<CashShiftDTO> allShifts;
+        if (user.isAdmin()) {
+            allShifts = cashShiftService.findAll();
+        } else {
+            allShifts = cashShiftService.findByBranchId(user.getBranchId());
+        }
+        model.addAttribute("allShifts", allShifts);
+        model.addAttribute("user", user);
+        return "cash-shifts/open";
     }
 
-    /** Mở ca mới */
     @PostMapping("/open")
     public String open(HttpSession session, RedirectAttributes ra) {
         AppUser user = getUser(session);
         if (user == null) return "redirect:/login";
+        if (user.getBranchId() == null) {
+            ra.addFlashAttribute("error", "Admin không có chi nhánh, không thể mở ca.");
+            return "redirect:/cash-shifts";
+        }
         cashShiftService.openShift(user.getUserId(), user.getBranchId());
         ra.addFlashAttribute("success", "Đã mở ca làm việc");
         return "redirect:/cash-shifts";
     }
 
-    /** Form chốt ca */
     @GetMapping("/close/{id}")
     public String closeForm(@PathVariable Integer id, Model model) {
         cashShiftService.findById(id).ifPresent(s -> model.addAttribute("shift", s));
@@ -52,7 +65,6 @@ public class CashShiftController {
         return "cash-shifts/close";
     }
 
-    /** Xử lý chốt ca */
     @PostMapping("/close/{id}")
     public String close(@PathVariable Integer id,
                         @Valid @ModelAttribute("cashShiftDTO") CashShiftDTO dto,
@@ -79,11 +91,12 @@ public class CashShiftController {
         return "redirect:/cash-shifts";
     }
 
-    /** Manager xác nhận ca đã chốt */
     @PostMapping("/confirm/{id}")
     public String confirm(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
+        AppUser user = getUser(session);
+        if (user == null) return "redirect:/login";
         try {
-            cashShiftService.confirmShift(id, getUser(session).getUserId());
+            cashShiftService.confirmShift(id, user.getUserId());
             ra.addFlashAttribute("success", "Đã xác nhận ca");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());

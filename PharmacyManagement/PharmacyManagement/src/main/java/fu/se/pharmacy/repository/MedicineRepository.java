@@ -9,7 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface MedicineRepository extends JpaRepository<Medicine, Integer> {
+
+    // Từ P3 (dùng trong SaleService, InventoryBatch)
     List<Medicine> findByStatus(String status);
+    Optional<Medicine> findByMedicineCode(String medicineCode);
+
+    // Từ P2 (dùng trong GoodsReceiptServiceImpl)
     Optional<Medicine> findByBarcode(String barcode);
-    List<Medicine> findByMedicineNameContainingIgnoreCaseAndStatus(String name, String status);
+    List<Medicine> findByMedicineNameContainingIgnoreCase(String name);
 }
