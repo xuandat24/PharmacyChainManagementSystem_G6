@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Duyệt chênh lệch nhận hàng - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .variance-row { background-color: #fff3cd !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('receipt')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Duyệt Chênh Lệch Phiếu Nhận: <span th:text="'GR-' + ${gr.receiptId}">GR-001</span></h2>
+                <p class="text-muted">Nhà cung cấp: <strong th:text="${gr.purchaseRequest.supplier.supplierName}">Mega Pharma</strong> | Chi nhánh: <span th:text="${gr.branch.branchName}">Branch A</span></p>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white p-4">
+                <form th:action="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}" method="post">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">Bảng đối chiếu chênh lệch</h5>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Tên Thuốc</th>
+                                <th>Số Lô</th>
+                                <th>Hạn Dùng</th>
+                                <th>Số Lượng Duyệt (PR)</th>
+                                <th>Thực Nhận (GR)</th>
+                                <th>Đơn Giá Phê Duyệt</th>
+                                <th>Đơn Giá Thực Tế</th>
+                                <th>Đánh giá</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="d : ${gr.details}" th:classappend="${d.quantityReceived > d.quantityOrdered || d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) > 0} ? 'variance-row' : ''">
+                                <td class="text-start ps-3" th:text="${d.medicine.medicineName}">Medicine Name</td>
+                                <td th:text="${d.batchNumber}">PA2026</td>
+                                <td th:text="${d.expiryDate}">2028-12-31</td>
+                                <td th:text="${d.quantityOrdered}" class="fw-bold">100</td>
+                                <td th:text="${d.quantityReceived}" class="fw-bold text-primary">120</td>
+                                <td th:text="${#numbers.formatDecimal(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">18,000 đ</td>
+                                <td th:text="${#numbers.formatDecimal(d.purchasePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}" class="text-danger fw-bold">20,000 đ</td>
+                                <td>
+                                    <span th:if="${d.quantityReceived > d.quantityOrdered}" class="text-danger fw-bold d-block">Vượt số lượng (+<span th:text="${d.quantityReceived - d.quantityOrdered}">20</span>)</span>
+                                    <span th:if="${d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) > 0}" class="text-danger fw-bold d-block">Vượt giá duyệt</span>
+                                    <span th:if="${d.quantityReceived <= d.quantityOrdered && d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) <= 0}" class="text-success fw-bold">Hợp lệ (Khớp)</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="adminNotes" class="form-label fw-bold">Ghi chú duyệt chênh lệch</label>
+                        <textarea id="adminNotes" name="adminNotes" class="form-control" rows="3" placeholder="Nhập ghi chú cho việc xử lý chênh lệch này..." required></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-1"></i>Chấp nhận & Nhập kho</button>
+                        <button type="submit" th:formaction="@{/goods-receipts/admin/reject-variance/{id}(id=${gr.receiptId})}" class="btn btn-danger"><i class="fa-solid fa-xmark me-1"></i>Từ chối phiếu nhận</button>
+                        <a href="/goods-receipts" class="btn btn-secondary">Quay lại</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

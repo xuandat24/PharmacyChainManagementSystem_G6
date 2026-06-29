@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Phiếu nhận hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('receipt')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Danh sách Phiếu nhận hàng</h2>
+                <div class="d-flex gap-2">
+                    <!-- BranchManager: đến purchase-requests để tạo phiếu nhận mới -->
+                    <div th:if="${user.role == 'BranchManager'}">
+                        <a href="/purchase-requests" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-file-import me-1"></i>Xem Yêu cầu nhập hàng
+                        </a>
+                    </div>
+                    <!-- Admin: duyệt phiếu chênh lệch -->
+                    <div th:if="${user.role == 'Admin'}">
+                        <a href="/goods-receipts/admin/pending" class="btn btn-warning text-white">
+                            <i class="fa-solid fa-bell me-1"></i>Phiếu chờ duyệt chênh lệch
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Phiếu</th>
+                            <th>Mã Yêu Cầu</th>
+                            <th>Ngày Nhận</th>
+                            <th>Tổng Tiền Thực</th>
+                            <th>Chênh Lệch</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="gr : ${receipts}">
+                            <td class="fw-bold text-primary"
+                                th:text="'GR-' + ${gr.receiptId}"></td>
+                            <td class="fw-semibold"
+                                th:text="'PR-' + ${gr.purchaseRequestId}"></td>
+                            <td th:text="${gr.receivedAt != null ? #temporals.format(gr.receivedAt,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                            <td class="fw-bold"
+                                th:text="${#numbers.formatInteger(gr.totalActualAmount, 1, 'COMMA')} + ' đ'"></td>
+                            <!-- Cột có chênh lệch không -->
+                            <td>
+                                <span th:if="${gr.hasVariance}" class="badge bg-warning text-dark">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Có lệch
+                                </span>
+                                <span th:unless="${gr.hasVariance}" class="badge bg-success">
+                                    <i class="fa-solid fa-check me-1"></i>Khớp
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${gr.status == 'DRAFT'}" class="badge bg-secondary">Nháp</span>
+                                <span th:if="${gr.status == 'PENDING_ADMIN_APPROVAL'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
+                                <span th:if="${gr.status == 'POSTED'}" class="badge bg-success">Đã nhập kho</span>
+                                <span th:if="${gr.status == 'REJECTED'}" class="badge bg-danger">Bị từ chối</span>
+                            </td>
+                            <td>
+                                <!-- Admin: duyệt/từ chối chênh lệch -->
+                                <div th:if="${user.role == 'Admin'}" class="d-flex gap-1 justify-content-center">
+                                    <a th:if="${gr.status == 'PENDING_ADMIN_APPROVAL'}"
+                                       th:href="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}"
+                                       class="btn btn-sm btn-warning text-white">
+                                        <i class="fa-solid fa-gavel me-1"></i>Xem xét
+                                    </a>
+                                    <form th:if="${gr.status == 'PENDING_ADMIN_APPROVAL'}"
+                                          th:action="@{/goods-receipts/admin/reject-variance/{id}(id=${gr.receiptId})}"
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Từ chối phiếu nhận hàng này?')">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                    <span th:if="${gr.status != 'PENDING_ADMIN_APPROVAL'}"
+                                          class="text-muted small">—</span>
+                                </div>
+                                <!-- BranchManager: xem phiếu đã posted -->
+                                <div th:if="${user.role == 'BranchManager'}">
+                                    <span th:if="${gr.status == 'POSTED'}"
+                                          class="text-success small">
+                                        <i class="fa-solid fa-check-circle"></i> Đã vào kho
+                                    </span>
+                                    <span th:if="${gr.status == 'DRAFT'}"
+                                          class="badge bg-secondary">Đang xử lý</span>
+                                    <span th:if="${gr.status == 'PENDING_ADMIN_APPROVAL'}"
+                                          class="badge bg-warning text-dark">Chờ Admin</span>
+                                    <span th:if="${gr.status == 'REJECTED'}"
+                                          class="badge bg-danger">Bị từ chối</span>
+                                </div>
+                                <!-- Pharmacist: chỉ xem -->
+                                <span th:if="${user.role == 'Pharmacist'}"
+                                      class="text-muted small">Chỉ xem</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(receipts)}">
+                            <td colspan="7" class="text-muted py-4">Không có phiếu nhận hàng nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
