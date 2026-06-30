@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Chi tiết điều chuyển</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{views/flow4/fragments :: sidebar('transfers')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{views/flow4/fragments :: topbar('Chi tiết phiếu điều chuyển', 'Duyệt, gửi hàng và nhận hàng cho phiếu điều chuyển')}"></div>
+        <input type="hidden" id="transferId" th:value="${transferId}">
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2 id="transferCode">Phiếu điều chuyển</h2>
+                <a class="btn btn-light" th:href="@{/flow4/transfers}">Quay lại</a>
+            </div>
+            <div class="details-grid">
+                <div class="detail-cell"><span>Chi nhánh gửi</span><strong id="fromBranchIdText">-</strong></div>
+                <div class="detail-cell"><span>Chi nhánh nhận</span><strong id="toBranchIdText">-</strong></div>
+                <div class="detail-cell"><span>Trạng thái</span><strong id="statusText">-</strong></div>
+                <div class="detail-cell"><span>Tổng giá trị</span><strong id="totalValueText">-</strong></div>
+                <div class="detail-cell"><span>Người tạo</span><strong id="requestedByText">-</strong></div>
+                <div class="detail-cell"><span>Ngày tạo</span><strong id="requestedAtText">-</strong></div>
+                <div class="detail-cell full"><span>Ghi chú</span><strong id="noteText">-</strong></div>
+            </div>
+
+            <div class="action-row" style="margin-top: 16px;">
+                <button class="btn btn-primary" id="approveBtn">Duyệt</button>
+                <button class="btn btn-danger" id="rejectBtn">Từ chối</button>
+                <button class="btn btn-blue" id="sendBtn">Xác nhận gửi</button>
+                <button class="btn btn-warning" id="receiveBtn">Xác nhận nhận</button>
+                <button class="btn btn-light" id="cancelBtn">Hủy phiếu</button>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Danh sách thuốc</h2>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID chi tiết</th>
+                        <th>ID thuốc</th>
+                        <th>ID lô xuất</th>
+                        <th>SL yêu cầu</th>
+                        <th>SL gửi</th>
+                        <th>SL nhận</th>
+                    </tr>
+                    </thead>
+                    <tbody id="transferDetailBody">
+                    <tr><td colspan="6" class="empty-state">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel" id="sendPanel">
+            <div class="panel-header"><h2>Thông tin gửi hàng</h2></div>
+            <form id="sendForm" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sentBy">Người gửi <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="sentBy" name="sentBy" min="1" value="1">
+                        <div class="field-error" data-error-for="sentBy"></div>
+                    </div>
+                </div>
+                <div id="sendItems" style="margin-top:12px;"></div>
+                <button type="submit" class="btn btn-blue">Gửi hàng</button>
+            </form>
+        </section>
+
+        <section class="panel" id="receivePanel">
+            <div class="panel-header"><h2>Thông tin nhận hàng</h2></div>
+            <form id="receiveForm" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="receivedBy">Người nhận <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="receivedBy" name="receivedBy" min="1" value="1">
+                        <div class="field-error" data-error-for="receivedBy"></div>
+                    </div>
+                </div>
+                <div id="receiveItems" style="margin-top:12px;"></div>
+                <button type="submit" class="btn btn-warning">Nhận hàng</button>
+            </form>
+        </section>
+    </main>
+</div>
+<div th:replace="~{views/flow4/fragments :: toast}"></div>
+<div th:replace="~{views/flow4/fragments :: confirmModal}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/transfers-detail.js}"></script>
+</body>
+</html>

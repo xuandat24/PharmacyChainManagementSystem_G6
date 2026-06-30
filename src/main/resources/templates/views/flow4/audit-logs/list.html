@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Audit Log</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{views/flow4/fragments :: sidebar('audit')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{views/flow4/fragments :: topbar('Audit log', 'Theo dõi các thao tác quan trọng trong hệ thống')}"></div>
+        <section class="panel">
+            <div class="panel-header">
+                <h2>100 log mới nhất</h2>
+                <button class="btn btn-light" id="reloadAuditBtn">Tải lại</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Người dùng</th>
+                        <th>Chi nhánh</th>
+                        <th>Hành động</th>
+                        <th>Đối tượng</th>
+                        <th>Lý do</th>
+                    </tr>
+                    </thead>
+                    <tbody id="auditBody">
+                    <tr><td colspan="6" class="empty-state">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<div th:replace="~{views/flow4/fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/audit-logs.js}"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside class="flow4-sidebar" th:fragment="sidebar(active)">
+    <div class="flow4-brand">
+        <div class="flow4-logo">💊</div>
+        <div>
+            <h2>Pharmacy</h2>
+            <p>Flow 4 Control</p>
+        </div>
+    </div>
+
+    <nav class="flow4-menu">
+        <a th:href="@{/flow4/dashboard}" th:classappend="${active == 'dashboard'} ? 'active' : ''">🏠 Dashboard</a>
+        <a th:href="@{/flow4/transfers}" th:classappend="${active == 'transfers'} ? 'active' : ''">🚚 Điều chuyển</a>
+        <a th:href="@{/flow4/expenses}" th:classappend="${active == 'expenses'} ? 'active' : ''">💸 Phiếu chi</a>
+        <a th:href="@{/flow4/reports}" th:classappend="${active == 'reports'} ? 'active' : ''">📊 Báo cáo</a>
+        <a th:href="@{/flow4/periods}" th:classappend="${active == 'periods'} ? 'active' : ''">🔒 Khóa sổ</a>
+        <a th:href="@{/flow4/notifications}" th:classappend="${active == 'notifications'} ? 'active' : ''">🔔 Thông báo</a>
+        <a th:href="@{/flow4/audit-logs}" th:classappend="${active == 'audit'} ? 'active' : ''">🧾 Audit log</a>
+    </nav>
+</aside>
+
+<header class="flow4-topbar" th:fragment="topbar(title, subtitle)">
+    <div class="flow4-title">
+        <h1 th:text="${title}">Tiêu đề</h1>
+        <p th:text="${subtitle}">Mô tả</p>
+    </div>
+    <div class="flow4-user">
+        <strong>Người dùng hiện tại</strong>
+        <span>Demo user ID: 1</span>
+    </div>
+</header>
+
+<div class="toast-wrap" th:fragment="toast"></div>
+
+<div class="modal-backdrop" id="confirmModal" th:fragment="confirmModal">
+    <div class="modal">
+        <h3 id="confirmTitle">Xác nhận</h3>
+        <p id="confirmMessage">Bạn có chắc chắn muốn thực hiện thao tác này?</p>
+        <div class="form-group" id="confirmReasonGroup">
+            <label for="confirmReason">Lý do / ghi chú</label>
+            <textarea id="confirmReason" maxlength="500" placeholder="Nhập lý do nếu cần"></textarea>
+            <div class="field-error" data-error-for="reason"></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-light" id="confirmCancelBtn">Hủy</button>
+            <button type="button" class="btn btn-primary" id="confirmOkBtn">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Tạo phiếu điều chuyển</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{views/flow4/fragments :: sidebar('transfers')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{views/flow4/fragments :: topbar('Tạo phiếu điều chuyển', 'Nhập thông tin phiếu điều chuyển thuốc giữa hai chi nhánh')}"></div>
+
+        <form id="transferCreateForm" class="panel" novalidate>
+            <div class="form-grid three">
+                <div class="form-group">
+                    <label for="fromBranchId">Chi nhánh gửi <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="fromBranchId" name="fromBranchId" min="1" placeholder="VD: 1">
+                    <div class="field-error" data-error-for="fromBranchId"></div>
+                </div>
+                <div class="form-group">
+                    <label for="toBranchId">Chi nhánh nhận <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="toBranchId" name="toBranchId" min="1" placeholder="VD: 2">
+                    <div class="field-error" data-error-for="toBranchId"></div>
+                </div>
+                <div class="form-group">
+                    <label for="requestedBy">Người tạo yêu cầu <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="requestedBy" name="requestedBy" min="1" value="1">
+                    <div class="field-error" data-error-for="requestedBy"></div>
+                </div>
+                <div class="form-group full">
+                    <label for="note">Ghi chú</label>
+                    <textarea id="note" name="note" maxlength="500" placeholder="Lý do điều chuyển, ghi chú giao nhận..."></textarea>
+                    <div class="field-error" data-error-for="note"></div>
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 20px;">
+                <h2>Danh sách thuốc điều chuyển</h2>
+                <button type="button" class="btn btn-light" id="addTransferItemBtn">+ Thêm thuốc</button>
+            </div>
+            <div class="field-error" data-error-for="items"></div>
+            <div id="transferItems"></div>
+
+            <div class="action-row" style="margin-top: 18px;">
+                <button type="submit" class="btn btn-primary">Lưu phiếu</button>
+                <a class="btn btn-light" th:href="@{/flow4/transfers}">Quay lại</a>
+            </div>
+        </form>
+    </main>
+</div>
+<div th:replace="~{views/flow4/fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/transfers-form.js}"></script>
+</body>
+</html>

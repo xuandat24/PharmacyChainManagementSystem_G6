@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Dashboard - Flow 4</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{views/flow4/fragments :: sidebar('dashboard')}"></div>
+
+    <main class="flow4-main">
+        <div th:replace="~{views/flow4/fragments :: topbar('Dashboard kiểm soát', 'Theo dõi điều chuyển, phiếu chi, báo cáo và cảnh báo của luồng 4')}"></div>
+
+        <section class="toolbar">
+            <div class="form-group" style="max-width: 220px;">
+                <label for="branchId">Lọc theo chi nhánh</label>
+                <input type="number" id="branchId" min="1" placeholder="Để trống = toàn chuỗi">
+            </div>
+            <button class="btn btn-primary" id="reloadDashboardBtn">Tải dữ liệu</button>
+        </section>
+
+        <section class="card-grid">
+            <div class="summary-card">
+                <div class="summary-icon green">💰</div>
+                <div>
+                    <p>Doanh thu hôm nay</p>
+                    <h3 id="todayRevenue">0đ</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon blue">🧾</div>
+                <div>
+                    <p>Hóa đơn hôm nay</p>
+                    <h3 id="todaySalesCount">0</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon orange">🚚</div>
+                <div>
+                    <p>Điều chuyển chờ duyệt</p>
+                    <h3 id="pendingTransferCount">0</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon red">💸</div>
+                <div>
+                    <p>Phiếu chi chờ duyệt</p>
+                    <h3 id="pendingExpenseCount">0</h3>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-grid">
+            <div class="summary-card">
+                <div class="summary-icon green">💵</div>
+                <div>
+                    <p>Tiền mặt</p>
+                    <h3 id="todayCashRevenue">0đ</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon blue">🏦</div>
+                <div>
+                    <p>Online</p>
+                    <h3 id="todayOnlineRevenue">0đ</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon orange">📦</div>
+                <div>
+                    <p>Giá trị nhập hàng</p>
+                    <h3 id="todayGoodsReceiptAmount">0đ</h3>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon red">⚠️</div>
+                <div>
+                    <p>Tồn thấp / Sắp hết hạn</p>
+                    <h3><span id="lowStockCount">0</span> / <span id="nearExpiryCount">0</span></h3>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Thao tác nhanh</h2>
+            </div>
+            <div class="action-row">
+                <a class="btn btn-primary" th:href="@{/flow4/transfers/create}">Tạo điều chuyển</a>
+                <a class="btn btn-blue" th:href="@{/flow4/expenses/create}">Tạo phiếu chi</a>
+                <a class="btn btn-light" th:href="@{/flow4/reports}">Xem báo cáo</a>
+                <a class="btn btn-light" th:href="@{/flow4/periods}">Khóa sổ tháng</a>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{views/flow4/fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/dashboard.js}"></script>
+</body>
+</html>
