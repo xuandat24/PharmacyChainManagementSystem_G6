@@ -14,27 +14,21 @@
     </div>
     <div class="card shadow-sm">
         <div class="card-body">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-dark">
-                <tr>
-                    <th class="text-center">ID</th>
-                    <th>Khóa (Key)</th>
-                    <th>Giá trị (Value)</th>
-                    <th>Mô tả</th>
-                    <th class="text-center">Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
-                </tr>
-                </thead>
+            <table class="table table-bordered table-hover align-middle"><thead class="table-dark">
+            <tr>
+                <th class="text-center">ID</th>
+                <th>Khóa (Key)</th>
+                <th>Giá trị (Value)</th>
+                <th>Mô tả</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+            </thead>
                 <tbody>
                 <tr th:each="s : ${settings}">
                     <td class="text-center" th:text="${s.settingId}"></td>
                     <td class="fw-bold text-danger" th:text="${s.settingKey}"></td>
                     <td class="fw-bold text-primary" th:text="${s.settingValue}"></td>
                     <td th:text="${s.description}"></td>
-                    <td class="text-center">
-                        <span th:if="${s.status == 'ACTIVE'}" class="badge bg-success">Hoạt động</span>
-                        <span th:if="${s.status == 'INACTIVE'}" class="badge bg-danger">Ngừng HĐ</span>
-                    </td>
                     <td class="text-center">
                         <a th:href="@{/settings/edit/{id}(id=${s.settingId})}" class="btn btn-sm btn-warning fw-bold">Sửa</a>
                         <a th:href="@{/settings/delete/{id}(id=${s.settingId})}" class="btn btn-sm btn-danger fw-bold" onclick="return confirm('Xóa cấu hình này?');">Xóa</a>

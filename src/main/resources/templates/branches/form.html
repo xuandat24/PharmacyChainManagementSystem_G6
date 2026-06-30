@@ -14,6 +14,11 @@
                     <h4 class="mb-0">Nhập thông tin Chi nhánh</h4>
                 </div>
                 <div class="card-body">
+
+                    <!-- ĐOẠN CODE HIỂN THỊ LỖI NẰM Ở ĐÂY -->
+                    <div th:if="${error}" class="alert alert-danger fw-bold text-center" role="alert" th:text="${error}">
+                    </div>
+
                     <form th:action="@{/branches/save}" th:object="${branch}" method="post">
 
                         <input type="hidden" th:field="*{branchId}" />

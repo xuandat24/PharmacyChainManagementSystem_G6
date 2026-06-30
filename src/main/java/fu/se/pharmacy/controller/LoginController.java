@@ -33,8 +33,19 @@ public class LoginController {
 
         // Kiểm tra xem user có tồn tại và đúng pass không
         if (employeeOpt.isPresent() && employeeOpt.get().getPasswordHash().equals(password)) {
-            session.setAttribute("loggedInUser", employeeOpt.get());
+
+            Employee employee = employeeOpt.get();
+
+            // BƯỚC BẢO MẬT THÊM VÀO: Kiểm tra trạng thái của nhân viên
+            if (!"ACTIVE".equals(employee.getStatus())) {
+                model.addAttribute("error", "Tài khoản đã bị khóa hoặc ngừng hoạt động!");
+                return "auth/login"; // Đá văng về trang đăng nhập
+            }
+
+            // Nếu qua được ải trên (tức là ACTIVE) thì mới cho đăng nhập
+            session.setAttribute("loggedInUser", employee);
             return "redirect:/";
+
         } else {
             model.addAttribute("error", "Tài khoản hoặc mật khẩu không chính xác!");
             return "auth/login";

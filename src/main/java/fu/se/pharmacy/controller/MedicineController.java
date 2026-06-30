@@ -5,6 +5,7 @@ import fu.se.pharmacy.entity.Medicine;
 import fu.se.pharmacy.service.CategoryService;
 import fu.se.pharmacy.service.MedicineService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class MedicineController {
     }
 
     @PostMapping("/save")
-    public String saveMedicine(@ModelAttribute("medicine") MedicineDTO dto) {
+    public String saveMedicine(@ModelAttribute("medicine") MedicineDTO dto, Model model) {
         Medicine medicine = new Medicine();
         medicine.setMedicineId(dto.getMedicineId());
         medicine.setMedicineCode(dto.getMedicineCode());
@@ -42,8 +43,23 @@ public class MedicineController {
         medicine.setDescription(dto.getDescription());
         medicine.setStatus(dto.getStatus() != null ? dto.getStatus() : "ACTIVE");
 
-        medicineService.saveMedicine(medicine);
-        return "redirect:/medicines";
+        try {
+            // Cố gắng lưu thuốc vào DB
+            medicineService.saveMedicine(medicine);
+            return "redirect:/medicines";
+
+        } catch (DataIntegrityViolationException e) {
+            // BẮT LỖI TRÙNG MÃ THUỐC
+            model.addAttribute("error", "Mã thuốc này đã tồn tại! Vui lòng nhập mã khác.");
+
+            // Giữ lại dữ liệu người dùng vừa nhập
+            model.addAttribute("medicine", dto);
+
+            // QUAN TRỌNG: Load lại danh sách Category cho Dropdown để không bị lỗi trắng form
+            model.addAttribute("categories", categoryService.getAllCategories());
+
+            return "medicines/form";
+        }
     }
 
 

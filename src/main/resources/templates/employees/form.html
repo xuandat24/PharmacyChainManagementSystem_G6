@@ -14,6 +14,11 @@
                     <h4 class="mb-0">Nhập thông tin Nhân viên</h4>
                 </div>
                 <div class="card-body">
+
+                    <!-- ĐOẠN CODE HIỂN THỊ LỖI NẰM Ở ĐÂY -->
+                    <div th:if="${error}" class="alert alert-danger fw-bold text-center" role="alert" th:text="${error}">
+                    </div>
+
                     <form th:action="@{/employees/save}" th:object="${employee}" method="post">
                         <input type="hidden" th:field="*{employeeId}" />
 
@@ -38,7 +43,12 @@
                                 <label class="form-label fw-bold">Phân quyền (Role) <span class="text-danger">*</span></label>
                                 <select class="form-select" th:field="*{roleId}" required>
                                     <option value="" disabled selected>-- Chọn quyền --</option>
-                                    <option th:each="r : ${roles}" th:value="${r.roleId}" th:text="${r.roleName}"></option>
+                                    <!-- ĐÃ CẬP NHẬT: Ẩn quyền Admin (roleId=1) nếu không phải đang sửa chính Admin -->
+                                    <option th:each="r : ${roles}"
+                                            th:value="${r.roleId}"
+                                            th:text="${r.roleName}"
+                                            th:if="${r.roleId != 1 or employee.roleId == 1}">
+                                    </option>
                                 </select>
                             </div>
                             <div class="col-md-6">

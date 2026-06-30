@@ -6,6 +6,7 @@ import fu.se.pharmacy.service.BranchService;
 import fu.se.pharmacy.service.EmployeeService;
 import fu.se.pharmacy.service.RoleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/save")
-    public String saveEmployee(@ModelAttribute("employee") EmployeeDTO dto) {
+    public String saveEmployee(@ModelAttribute("employee") EmployeeDTO dto, Model model) {
         Employee emp = new Employee();
         emp.setEmployeeId(dto.getEmployeeId());
         emp.setFullName(dto.getFullName());
@@ -50,8 +51,25 @@ public class EmployeeController {
         emp.setBranchId(dto.getBranchId());
         emp.setStatus(dto.getStatus() != null ? dto.getStatus() : "ACTIVE");
 
-        employeeService.saveEmployee(emp);
-        return "redirect:/employees";
+        try {
+            // Cố gắng lưu dữ liệu
+            employeeService.saveEmployee(emp);
+            return "redirect:/employees";
+
+        } catch (DataIntegrityViolationException e) {
+            // BẮT LỖI TRÙNG LẶP: Nếu Username đã tồn tại, code sẽ nhảy vào đây
+            model.addAttribute("error", "Tên đăng nhập này đã tồn tại! Vui lòng chọn tên khác.");
+
+            // Trả lại các dữ liệu vừa nhập để người dùng không phải gõ lại
+            model.addAttribute("employee", dto);
+
+            // QUAN TRỌNG: Phải bơm lại danh sách dropdown, nếu không form sẽ bị lỗi
+            model.addAttribute("branches", branchService.getAllBranches());
+            model.addAttribute("roles", roleService.getAllRoles());
+
+            // Trả về lại trang form thêm nhân viên
+            return "employees/form";
+        }
     }
 
     @GetMapping("/edit/{id}")
