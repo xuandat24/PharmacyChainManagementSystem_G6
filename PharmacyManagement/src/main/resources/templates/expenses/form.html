@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Tạo phiếu chi</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{fragments :: sidebar('expenses')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{fragments :: topbar('Tạo phiếu chi', 'Nhập thông tin chi phí vận hành của chi nhánh')}"></div>
+
+        <form id="expenseCreateForm" class="panel" novalidate>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="branchId">Chi nhánh <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="branchId" name="branchId" min="1" placeholder="VD: 1">
+                    <div class="field-error" data-error-for="branchId"></div>
+                </div>
+                <div class="form-group">
+                    <label for="createdBy">Người tạo phiếu <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="createdBy" name="createdBy" min="1" value="1">
+                    <div class="field-error" data-error-for="createdBy"></div>
+                </div>
+                <div class="form-group">
+                    <label for="expenseType">Loại chi phí <span style="color:#dc2626">*</span></label>
+                    <select id="expenseType" name="expenseType">
+                        <option value="">-- Chọn loại chi phí --</option>
+                        <option value="RENT">Tiền thuê</option>
+                        <option value="ELECTRICITY">Tiền điện</option>
+                        <option value="WATER">Tiền nước</option>
+                        <option value="SALARY">Lương</option>
+                        <option value="DELIVERY">Vận chuyển</option>
+                        <option value="OTHER">Khác</option>
+                    </select>
+                    <div class="field-error" data-error-for="expenseType"></div>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Số tiền VND <span style="color:#dc2626">*</span></label>
+                    <input type="number" id="amount" name="amount" min="1" placeholder="VD: 300000">
+                    <div class="field-error" data-error-for="amount"></div>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDate">Ngày chi <span style="color:#dc2626">*</span></label>
+                    <input type="date" id="expenseDate" name="expenseDate">
+                    <div class="field-error" data-error-for="expenseDate"></div>
+                </div>
+                <div class="form-group">
+                    <label for="documentNo">Số chứng từ</label>
+                    <input type="text" id="documentNo" name="documentNo" maxlength="80" placeholder="VD: HD-0001">
+                    <div class="field-error" data-error-for="documentNo"></div>
+                </div>
+                <div class="form-group full">
+                    <label for="description">Nội dung chi <span style="color:#dc2626">*</span></label>
+                    <textarea id="description" name="description" maxlength="500" placeholder="Nhập nội dung chi phí"></textarea>
+                    <div class="field-error" data-error-for="description"></div>
+                </div>
+            </div>
+            <div class="action-row" style="margin-top: 18px;">
+                <button type="submit" class="btn btn-primary">Lưu phiếu chi</button>
+                <a class="btn btn-light" th:href="@{/flow4/expenses}">Quay lại</a>
+            </div>
+        </form>
+    </main>
+</div>
+<div th:replace="~{fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/expenses-form.js}"></script>
+</body>
+</html>

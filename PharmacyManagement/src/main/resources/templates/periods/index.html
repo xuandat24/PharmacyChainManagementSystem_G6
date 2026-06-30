@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Khóa sổ tháng</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{fragments :: sidebar('periods')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{fragments :: topbar('Khóa sổ tháng', 'Khóa hoặc mở lại kỳ kế toán khi cần')}"></div>
+
+        <section class="panel">
+            <div class="panel-header"><h2>Khóa kỳ</h2></div>
+            <form id="periodLockForm" novalidate>
+                <div class="form-grid three">
+                    <div class="form-group">
+                        <label for="year">Năm <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="year" min="2020" max="2100" placeholder="VD: 2026">
+                        <div class="field-error" data-error-for="year"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="month">Tháng <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="month" min="1" max="12" placeholder="1-12">
+                        <div class="field-error" data-error-for="month"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lockedBy">Người khóa <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="lockedBy" min="1" value="1">
+                        <div class="field-error" data-error-for="lockedBy"></div>
+                    </div>
+                </div>
+                <div class="action-row" style="margin-top: 16px;">
+                    <button class="btn btn-primary" type="submit">Khóa kỳ</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header"><h2>Mở lại kỳ đã khóa</h2></div>
+            <form id="periodUnlockForm" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="periodId">ID kỳ <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="periodId" min="1">
+                        <div class="field-error" data-error-for="periodId"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="unlockedBy">Người mở khóa <span style="color:#dc2626">*</span></label>
+                        <input type="number" id="unlockedBy" min="1" value="1">
+                        <div class="field-error" data-error-for="unlockedBy"></div>
+                    </div>
+                    <div class="form-group full">
+                        <label for="reason">Lý do mở khóa <span style="color:#dc2626">*</span></label>
+                        <textarea id="reason" maxlength="500"></textarea>
+                        <div class="field-error" data-error-for="reason"></div>
+                    </div>
+                </div>
+                <div class="action-row" style="margin-top: 16px;">
+                    <button class="btn btn-warning" type="submit">Mở khóa kỳ</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/periods.js}"></script>
+</body>
+</html>

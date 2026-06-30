@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Phiếu chi</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{fragments :: sidebar('expenses')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{fragments :: topbar('Phiếu chi vận hành', 'Quản lý chi phí ngoài nhập hàng')}"></div>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Danh sách phiếu chi</h2>
+                <a class="btn btn-primary" th:href="@{/flow4/expenses/create}">+ Tạo phiếu chi</a>
+            </div>
+            <div class="toolbar">
+                <div class="form-group" style="max-width: 220px;">
+                    <label for="branchFilter">Chi nhánh</label>
+                    <input type="number" id="branchFilter" min="1" placeholder="Để trống = tất cả">
+                </div>
+                <button class="btn btn-light" id="reloadExpensesBtn">Tải lại</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Mã phiếu</th>
+                        <th>Chi nhánh</th>
+                        <th>Loại chi</th>
+                        <th>Số tiền</th>
+                        <th>Ngày chi</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                    <tr><td colspan="7" class="empty-state">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments :: toast}"></div>
+<div th:replace="~{fragments :: confirmModal}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/expenses-list.js}"></script>
+</body>
+</html>

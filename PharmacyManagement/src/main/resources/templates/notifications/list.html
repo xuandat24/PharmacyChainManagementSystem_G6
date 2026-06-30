@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title>Thông báo</title>
+    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+</head>
+<body>
+<div class="flow4-layout">
+    <div th:replace="~{fragments :: sidebar('notifications')}"></div>
+    <main class="flow4-main">
+        <div th:replace="~{fragments :: topbar('Thông báo', 'Xem các thông báo phát sinh từ điều chuyển, phiếu chi và hệ thống')}"></div>
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Danh sách thông báo</h2>
+                <button class="btn btn-light" id="reloadNotificationsBtn">Tải lại</button>
+            </div>
+            <div class="toolbar">
+                <div class="form-group">
+                    <label for="userId">User ID</label>
+                    <input type="number" id="userId" min="1" placeholder="Tùy chọn">
+                </div>
+                <div class="form-group">
+                    <label for="branchId">Branch ID</label>
+                    <input type="number" id="branchId" min="1" placeholder="Tùy chọn">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Loại</th>
+                        <th>Tiêu đề</th>
+                        <th>Nội dung</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="notificationBody">
+                    <tr><td colspan="6" class="empty-state">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments :: toast}"></div>
+<script th:src="@{/js/flow4/common.js}"></script>
+<script th:src="@{/js/flow4/notifications.js}"></script>
+</body>
+</html>
