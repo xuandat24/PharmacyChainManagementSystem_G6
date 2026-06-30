@@ -86,7 +86,7 @@ class CashShiftServiceTest {
             CashShiftDTO result = cashShiftService.openShift(5, 1);
 
             assertThat(result.getCashShiftId()).isEqualTo(1);
-            verify(cashShiftRepository, never()).save(any()); // khong tao moi
+            verify(cashShiftRepository, never()).save(any());
         }
     }
 
@@ -101,23 +101,24 @@ class CashShiftServiceTest {
         @Test
         @DisplayName("Chot ca - chenh lech trong nguong - status CLOSED")
         void closeShift_withinThreshold_statusClosed() {
-            // Ca co 1 giao dich tien mat 24000
             Sale sale = new Sale();
             sale.setSaleId(1);
             sale.setStatus("COMPLETED");
             sale.setFinalAmount(24_000);
-            sale.setSaleDate(LocalDateTime.now()); // trong ca
+            sale.setSaleDate(LocalDateTime.now());
 
             Payment cashPayment = new Payment();
             cashPayment.setPaymentMethod("CASH");
             cashPayment.setStatus("PAID");
 
             CashShiftDTO input = new CashShiftDTO();
-            input.setActualCashAmount(524_000); // 500000 + 24000 = khop chinh xac
+            input.setActualCashAmount(524_000); // 500000 + 24000
 
             when(cashShiftRepository.findById(1)).thenReturn(Optional.of(openShift));
             when(saleRepository.findByBranchIdOrderBySaleDateDesc(1)).thenReturn(List.of(sale));
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(cashPayment));
+            // FIX: impl dùng findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                    .thenReturn(List.of(cashPayment));
             when(cashShiftRepository.save(any())).thenAnswer(inv -> {
                 CashShift s = inv.getArgument(0);
                 assertThat(s.getStatus()).isEqualTo("CLOSED");
@@ -135,7 +136,7 @@ class CashShiftServiceTest {
         @DisplayName("Chot ca - chenh lech vuot nguong 500k - status PENDING_ADMIN_REVIEW")
         void closeShift_aboveThreshold_statusPendingReview() {
             CashShiftDTO input = new CashShiftDTO();
-            input.setActualCashAmount(2_000_000); // vuot nguong so voi openingCash=500000
+            input.setActualCashAmount(2_000_000);
 
             when(cashShiftRepository.findById(1)).thenReturn(Optional.of(openShift));
             when(saleRepository.findByBranchIdOrderBySaleDateDesc(1)).thenReturn(List.of());
@@ -189,16 +190,19 @@ class CashShiftServiceTest {
             onlinePay.setStatus("PAID");
 
             CashShiftDTO input = new CashShiftDTO();
-            input.setActualCashAmount(550_000); // 500000 + 50000 (chi tinh CASH)
+            input.setActualCashAmount(550_000); // 500000 + 50000 (chi CASH)
 
             when(cashShiftRepository.findById(1)).thenReturn(Optional.of(openShift));
             when(saleRepository.findByBranchIdOrderBySaleDateDesc(1))
                     .thenReturn(List.of(cashSale, onlineSale));
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(cashPay));
-            when(paymentRepository.findBySaleId(2)).thenReturn(Optional.of(onlinePay));
+            // FIX: findBySaleId(1) → findBySaleIdOrderByCreatedAtDesc(1)
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                    .thenReturn(List.of(cashPay));
+            // FIX: findBySaleId(2) → findBySaleIdOrderByCreatedAtDesc(2)
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(2))
+                    .thenReturn(List.of(onlinePay));
             when(cashShiftRepository.save(any())).thenAnswer(inv -> {
                 CashShift s = inv.getArgument(0);
-                // systemCash = 500000 + 50000 = 550000 (khong cong 90000 online)
                 assertThat(s.getSystemCashAmount()).isEqualTo(550_000);
                 assertThat(s.getDifferenceAmount()).isEqualTo(0);
                 assertThat(s.getStatus()).isEqualTo("CLOSED");

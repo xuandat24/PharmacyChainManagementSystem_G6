@@ -32,21 +32,26 @@
                             <th>Chi Nhánh</th>
                             <th>Ngày Kiểm Kê</th>
                             <th>Người Thực Hiện</th>
+                            <th>Chênh Lệch (đ)</th>
                             <th>Hành Động</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="c : ${counts}">
                             <td class="fw-bold text-primary" th:text="'SC-' + ${c.stockCountId}">SC-001</td>
-                            <td th:text="${c.branch.branchName}">Branch A</td>
-                            <td th:text="${#temporals.format(c.countDate, 'dd-MM-yyyy HH:mm')}">23-06-2026 12:00</td>
-                            <td th:text="${c.createdBy.fullName}">Nguyen Van An</td>
+                            <!-- FIX: c.branch là lazy navigation, có thể null nếu chưa load -->
+                            <td th:text="${c.branch != null ? c.branch.branchName : 'CN-' + c.branchId}">Branch A</td>
+                            <td th:text="${c.countDate != null ? #temporals.format(c.countDate, 'dd-MM-yyyy HH:mm') : '-'}">23-06-2026 12:00</td>
+                            <!-- FIX: c.createdBy là Integer (user_id), KHÔNG có .fullName -->
+                            <td th:text="'User #' + ${c.createdBy}">Nguyen Van An</td>
+                            <!-- Thêm cột chênh lệch để Admin biết giá trị trước khi bấm vào duyệt -->
+                            <td class="text-danger fw-bold" th:text="${#numbers.formatInteger(c.totalVarianceAmount, 1, 'COMMA')} + ' đ'">600,000 đ</td>
                             <td>
                                 <a th:href="@{/stock-counts/admin/approve/{id}(id=${c.stockCountId})}" class="btn btn-sm btn-warning text-white"><i class="fa-solid fa-gavel me-1"></i>Xem xét chênh lệch</a>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(counts)}">
-                            <td colspan="5" class="text-muted py-4">Không có phiếu kiểm kê chờ duyệt chênh lệch nào</td>
+                            <td colspan="6" class="text-muted py-4">Không có phiếu kiểm kê chờ duyệt chênh lệch nào</td>
                         </tr>
                         </tbody>
                     </table>

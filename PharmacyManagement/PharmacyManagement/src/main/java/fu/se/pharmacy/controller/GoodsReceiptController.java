@@ -1,5 +1,6 @@
 package fu.se.pharmacy.controller;
 
+import fu.se.pharmacy.config.AuthInterceptor;
 import fu.se.pharmacy.dto.GoodsReceiptForm;
 import fu.se.pharmacy.entity.*;
 import fu.se.pharmacy.service.GoodsReceiptService;
@@ -16,6 +17,18 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Phân quyền theo tài liệu nghiệp vụ (Người 2 - Nhận hàng):
+ * "Manager chọn Purchase Request đã duyệt → Tạo Goods Receipt."
+ * "Trường hợp có chênh lệch → PENDING_ADMIN_APPROVAL → Admin duyệt lại."
+ * → Tạo/lưu phiếu nhận hàng: chỉ BranchManager.
+ * → Duyệt/từ chối chênh lệch (admin/*): chỉ Admin.
+ * → Xem danh sách: mọi role đã đăng nhập (Admin xem toàn hệ thống, còn lại theo chi nhánh).
+ *
+ * FIX: chuẩn hóa dùng AuthInterceptor.requireRole()/requireLogin() — trước đây check
+ * thủ công bằng if/else và redirect âm thầm về list khi sai quyền, không nhất quán
+ * với trang "Bạn không có quyền hạn truy cập" của các luồng khác trong hệ thống.
+ */
 @Controller
 @RequestMapping("/goods-receipts")
 public class GoodsReceiptController {
@@ -23,16 +36,10 @@ public class GoodsReceiptController {
     @Autowired private GoodsReceiptService grService;
     @Autowired private PurchaseRequestService prService;
 
-    private AppUser getUser(HttpSession session) {
-        return (AppUser) session.getAttribute("loggedInUser");
-    }
-
     @GetMapping
     public String listReceipts(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        AppUser user = AuthInterceptor.requireLogin(session);
 
-        // FIX 1: AppUser không có getBranch() → dùng branchId trực tiếp
         List<GoodsReceipt> receipts;
         if (user.isAdmin()) {
             receipts = grService.getAllReceipts();
@@ -48,11 +55,8 @@ public class GoodsReceiptController {
     @GetMapping("/create")
     public String showCreateForm(@RequestParam("requestId") Integer requestId,
                                  HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        // FIX 2: getRole() nay đã hoạt động thông qua helper method
-        if (user == null || !user.isBranchManager()) {
-            return "redirect:/goods-receipts";
-        }
+        // FIX: chỉ BranchManager được nhận hàng
+        AuthInterceptor.requireRole(session, "BranchManager");
 
         PurchaseRequest pr = prService.getRequestById(requestId);
         if (!"APPROVED".equals(pr.getStatus()) && !"PARTIALLY_APPROVED".equals(pr.getStatus())) {
@@ -62,7 +66,6 @@ public class GoodsReceiptController {
         GoodsReceiptForm form = new GoodsReceiptForm();
         form.setPurchaseRequestId(requestId);
 
-        // FIX 3: PurchaseRequestDetail dùng approvedQuantity, expectedUnitPrice thay vì QuantityApproved/EstimatedPrice
         for (PurchaseRequestDetail d : pr.getDetails()) {
             Integer approved = d.getApprovedQuantity();
             if (approved != null && approved > 0) {
@@ -83,10 +86,8 @@ public class GoodsReceiptController {
     @PostMapping("/save")
     public String saveReceipt(@Valid @ModelAttribute("form") GoodsReceiptForm form,
                               BindingResult result, HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null || !user.isBranchManager()) {
-            return "redirect:/goods-receipts";
-        }
+        // FIX: chỉ BranchManager được lưu phiếu nhận hàng
+        AppUser user = AuthInterceptor.requireRole(session, "BranchManager");
 
         PurchaseRequest pr = prService.getRequestById(form.getPurchaseRequestId());
 
@@ -95,7 +96,6 @@ public class GoodsReceiptController {
             return "goods-receipts/create";
         }
 
-        // FIX 4: GoodsReceipt entity dùng integer FK (branchId, receivedBy) không phải @ManyToOne
         GoodsReceipt gr = new GoodsReceipt();
         gr.setPurchaseRequestId(pr.getPurchaseRequestId());
         gr.setBranchId(user.getBranchId());
@@ -130,16 +130,15 @@ public class GoodsReceiptController {
 
     @GetMapping("/admin/pending")
     public String showPendingReceipts(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null || !user.isAdmin()) return "redirect:/goods-receipts";
+        // FIX: chỉ Admin duyệt chênh lệch nhận hàng
+        AuthInterceptor.requireRole(session, "Admin");
         model.addAttribute("receipts", grService.getPendingApprovalReceipts());
         return "goods-receipts/pending";
     }
 
     @GetMapping("/admin/approve-variance/{id}")
     public String showApproveVarianceForm(@PathVariable Integer id, HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null || !user.isAdmin()) return "redirect:/goods-receipts";
+        AuthInterceptor.requireRole(session, "Admin");
 
         GoodsReceipt receipt = grService.getReceiptById(id);
         if (!"PENDING_ADMIN_APPROVAL".equals(receipt.getStatus())) return "redirect:/goods-receipts";
@@ -152,8 +151,7 @@ public class GoodsReceiptController {
     public String approveVariance(@PathVariable Integer id,
                                   @RequestParam(required = false) String adminNotes,
                                   HttpSession session) {
-        AppUser user = getUser(session);
-        if (user == null || !user.isAdmin()) return "redirect:/goods-receipts";
+        AppUser user = AuthInterceptor.requireRole(session, "Admin");
         grService.approveVariance(id, user.getUserId(), adminNotes);
         return "redirect:/goods-receipts";
     }
@@ -162,8 +160,7 @@ public class GoodsReceiptController {
     public String rejectVariance(@PathVariable Integer id,
                                  @RequestParam(required = false) String adminNotes,
                                  HttpSession session) {
-        AppUser user = getUser(session);
-        if (user == null || !user.isAdmin()) return "redirect:/goods-receipts";
+        AppUser user = AuthInterceptor.requireRole(session, "Admin");
         grService.rejectReceipt(id, user.getUserId(), adminNotes);
         return "redirect:/goods-receipts";
     }

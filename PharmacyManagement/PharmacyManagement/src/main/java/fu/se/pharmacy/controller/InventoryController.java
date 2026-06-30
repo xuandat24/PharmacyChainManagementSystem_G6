@@ -1,5 +1,6 @@
 package fu.se.pharmacy.controller;
 
+import fu.se.pharmacy.config.AuthInterceptor;
 import fu.se.pharmacy.entity.AppUser;
 import fu.se.pharmacy.entity.InventoryBatch;
 import fu.se.pharmacy.repository.InventoryBatchRepository;
@@ -14,6 +15,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Phân quyền theo tài liệu nghiệp vụ (Người 2 - Tồn kho):
+ * "Xem tồn toàn hệ thống đối với Admin. Xem tồn chi nhánh đối với Manager.
+ *  Xem tồn khả dụng đối với Pharmacist."
+ * → Mọi role đã đăng nhập đều XEM được tồn kho (chỉ khác phạm vi: Admin toàn hệ thống,
+ *   Manager/Pharmacist theo chi nhánh của mình). Không có hành động ghi/sửa ở đây vì
+ *   "Không ai được sửa trực tiếp số lượng tồn ngoài InventoryService".
+ */
 @Controller
 @RequestMapping("/inventory")
 public class InventoryController {
@@ -21,18 +30,14 @@ public class InventoryController {
     @Autowired private InventoryBatchRepository inventoryBatchRepository;
     @Autowired private InventoryTransactionRepository transactionRepository;
 
-    private AppUser getUser(HttpSession session) {
-        return (AppUser) session.getAttribute("loggedInUser");
-    }
-
     @GetMapping
     public String showInventory(HttpSession session,
                                 @RequestParam(required = false) String search,
                                 @RequestParam(required = false) String filter,
                                 Model model) {
-        // FIX: Employee → AppUser, getBranch().getBranchId() → getBranchId()
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        // FIX: dùng AuthInterceptor.requireLogin() thay vì tự lấy session thủ công,
+        // đồng bộ cách kiểm tra đăng nhập với toàn bộ hệ thống
+        AppUser user = AuthInterceptor.requireLogin(session);
 
         Integer branchId = user.getBranchId();
         LocalDate today = LocalDate.now();
@@ -54,13 +59,11 @@ public class InventoryController {
                             && (user.isAdmin() || b.getBranchId().equals(branchId)))
                     .collect(Collectors.toList());
         } else if (search != null && !search.isBlank()) {
-            // Tìm theo batch_number (medicine name cần join)
             stock = inventoryBatchRepository.findAll().stream()
                     .filter(b -> b.getBatchNumber().toLowerCase().contains(search.toLowerCase())
                             && (user.isAdmin() || b.getBranchId().equals(branchId)))
                     .collect(Collectors.toList());
         } else {
-            // Mặc định: xem tất cả lô AVAILABLE
             if (user.isAdmin()) {
                 stock = inventoryBatchRepository.findAll().stream()
                         .filter(b -> "AVAILABLE".equals(b.getStatus()))
@@ -101,8 +104,7 @@ public class InventoryController {
 
     @GetMapping("/transactions")
     public String showTransactions(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        AppUser user = AuthInterceptor.requireLogin(session);
 
         if (user.isAdmin()) {
             model.addAttribute("transactions", transactionRepository.findAll());

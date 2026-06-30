@@ -19,15 +19,28 @@
 
             <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
                 <h2 class="text-secondary fw-bold">Danh sách Nhà cung cấp</h2>
-                <!-- Chỉ Admin/BranchManager mới thêm được -->
-                <div th:if="${session.loggedInUser != null and (session.loggedInUser.role == 'Admin' or session.loggedInUser.role == 'BranchManager')}">
+                <!-- FIX: dùng ${user.role} thay vì session.loggedInUser.role -->
+                <div th:if="${user.role == 'Admin' or user.role == 'BranchManager'}">
                     <a href="/suppliers/create" class="btn btn-success">
                         <i class="fa-solid fa-plus me-1"></i>Thêm nhà cung cấp
                     </a>
                 </div>
             </div>
 
-            <!-- Search -->
+            <!-- FIX: thêm hiển thị flash message — trước đây deleteSupplier() ném
+                 ra.addFlashAttribute("success"/"error") nhưng template này không có
+                 khối nào render ${success}/${error}, nên Admin xóa NCC bị lỗi FK
+                 (đã có Purchase Request/InventoryBatch liên kết) không thấy thông báo gì -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+
             <div class="card shadow-sm border-0 mb-4 bg-white">
                 <div class="card-body">
                     <form th:action="@{/suppliers}" method="get" class="row g-3">
@@ -59,7 +72,6 @@
                         </thead>
                         <tbody>
                         <tr th:each="supplier : ${suppliers}">
-                            <!-- Hiển thị supplierCode thực thay vì 'NCC-id' -->
                             <td class="fw-bold text-primary text-center"
                                 th:text="${supplier.supplierCode}"></td>
                             <td class="ps-3">
@@ -78,20 +90,22 @@
                                       th:text="${supplier.status}"></span>
                             </td>
                             <td class="text-center">
-                                <!-- Chỉ Admin/BranchManager mới sửa/xóa -->
-                                <div th:if="${session.loggedInUser != null and (session.loggedInUser.role == 'Admin' or session.loggedInUser.role == 'BranchManager')}">
+                                <!-- FIX: dùng ${user.role} thay vì session.loggedInUser.role -->
+                                <div th:if="${user.role == 'Admin' or user.role == 'BranchManager'}"
+                                     class="d-flex gap-1 justify-content-center">
                                     <a th:href="@{/suppliers/edit/{id}(id=${supplier.supplierId})}"
-                                       class="btn btn-sm btn-outline-warning me-1">
+                                       class="btn btn-sm btn-outline-warning">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
-                                    <a th:href="@{/suppliers/delete/{id}(id=${supplier.supplierId})}"
+                                    <!-- Chỉ Admin xóa -->
+                                    <a th:if="${user.role == 'Admin'}"
+                                       th:href="@{/suppliers/delete/{id}(id=${supplier.supplierId})}"
                                        class="btn btn-sm btn-outline-danger"
                                        onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')">
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </div>
-                                <!-- Pharmacist: chỉ xem -->
-                                <span th:unless="${session.loggedInUser != null and (session.loggedInUser.role == 'Admin' or session.loggedInUser.role == 'BranchManager')}"
+                                <span th:if="${user.role == 'Pharmacist'}"
                                       class="text-muted small">Chỉ xem</span>
                             </td>
                         </tr>

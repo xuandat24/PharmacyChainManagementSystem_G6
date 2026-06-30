@@ -39,10 +39,14 @@
                         <tbody>
                         <tr th:each="gr : ${receipts}">
                             <td class="fw-bold text-primary" th:text="'GR-' + ${gr.receiptId}">GR-001</td>
-                            <td th:text="${gr.branch.branchName}">Branch A</td>
-                            <td th:text="${#temporals.format(gr.receivedDate, 'dd-MM-yyyy HH:mm')}">23-06-2026 12:00</td>
-                            <td th:text="${gr.receivedBy.fullName}">Nguyen Van An</td>
-                            <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(gr.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">1,800,000 đ</td>
+                            <!-- FIX: gr.branch là lazy navigation theo branch_id, có thể null nếu chưa load -->
+                            <td th:text="${gr.branch != null ? gr.branch.branchName : 'CN-' + gr.branchId}">Branch A</td>
+                            <!-- FIX: gr.receivedDate → gr.receivedAt (đúng tên field entity GoodsReceipt) -->
+                            <td th:text="${gr.receivedAt != null ? #temporals.format(gr.receivedAt, 'dd-MM-yyyy HH:mm') : '-'}">23-06-2026 12:00</td>
+                            <!-- FIX: gr.receivedBy là Integer (user_id), KHÔNG có .fullName -->
+                            <td th:text="'User #' + ${gr.receivedBy}">Nguyen Van An</td>
+                            <!-- FIX: gr.totalAmount → gr.totalActualAmount (đúng tên field entity), formatDecimal → formatInteger -->
+                            <td class="text-danger fw-bold" th:text="${#numbers.formatInteger(gr.totalActualAmount, 1, 'COMMA')} + ' đ'">1,800,000 đ</td>
                             <td>
                                 <a th:href="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}" class="btn btn-sm btn-warning text-white"><i class="fa-solid fa-gavel me-1"></i>Xem xét chênh lệch</a>
                             </td>

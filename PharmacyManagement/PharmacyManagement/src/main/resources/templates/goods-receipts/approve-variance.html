@@ -22,13 +22,22 @@
         <div class="col-md-10 bg-light p-4">
             <div class="pb-3 mb-4 border-bottom">
                 <h2 class="text-secondary fw-bold">Duyệt Chênh Lệch Phiếu Nhận: <span th:text="'GR-' + ${gr.receiptId}">GR-001</span></h2>
-                <p class="text-muted">Nhà cung cấp: <strong th:text="${gr.purchaseRequest.supplier.supplierName}">Mega Pharma</strong> | Chi nhánh: <span th:text="${gr.branch.branchName}">Branch A</span></p>
+                <!--
+                    FIX: GoodsReceipt KHÔNG có field .purchaseRequest object (chỉ có purchaseRequestId Integer)
+                    và cũng KHÔNG có .branch lazy navigation đảm bảo luôn load được.
+                    Hiển thị bằng ID kèm fallback an toàn.
+                -->
+                <p class="text-muted">
+                    Yêu cầu nhập: <strong th:text="'PR-' + ${gr.purchaseRequestId}"></strong>
+                    | Chi nhánh: <span th:text="${gr.branch != null ? gr.branch.branchName : 'CN-' + gr.branchId}">Branch A</span>
+                    | Nhà cung cấp ID: <span th:text="${gr.supplierId}"></span>
+                </p>
             </div>
 
             <div class="card shadow-sm border-0 bg-white p-4">
                 <form th:action="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}" method="post">
                     <h5 class="fw-bold border-bottom pb-2 mb-3">Bảng đối chiếu chênh lệch</h5>
-                    
+
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered align-middle text-center">
                             <thead class="table-light">
@@ -38,25 +47,39 @@
                                 <th>Hạn Dùng</th>
                                 <th>Số Lượng Duyệt (PR)</th>
                                 <th>Thực Nhận (GR)</th>
-                                <th>Đơn Giá Phê Duyệt</th>
                                 <th>Đơn Giá Thực Tế</th>
                                 <th>Đánh giá</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="d : ${gr.details}" th:classappend="${d.quantityReceived > d.quantityOrdered || d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) > 0} ? 'variance-row' : ''">
-                                <td class="text-start ps-3" th:text="${d.medicine.medicineName}">Medicine Name</td>
+                            <!--
+                                FIX toàn bộ field sai trong bản gốc:
+                                - d.quantityOrdered → d.orderedQuantity (đúng tên field GoodsReceiptDetail)
+                                - d.purchasePrice → d.actualUnitPrice (đúng tên field, kiểu Integer)
+                                - d.goodsReceipt.purchaseRequest.details[0].estimatedPrice → KHÔNG tồn tại,
+                                  cấu trúc entity không có chuỗi navigation này. orderedQuantity đã được
+                                  GoodsReceiptServiceImpl.submitAndCheckVariance() set sẵn từ approvedQuantity
+                                  của PurchaseRequestDetail, nên dùng trực tiếp orderedQuantity để so sánh.
+                                - #numbers.formatDecimal cho Integer → đổi sang formatInteger
+                                - d.purchasePrice.compareTo(...) (BigDecimal API) → so sánh int thông thường
+                            -->
+                            <tr th:each="d : ${gr.details}"
+                                th:classappend="${d.receivedQuantity > d.orderedQuantity} ? 'variance-row' : ''">
+                                <td class="text-start ps-3" th:text="${d.medicine != null ? d.medicine.medicineName : 'Thuốc ID: ' + d.medicineId}">Medicine Name</td>
                                 <td th:text="${d.batchNumber}">PA2026</td>
                                 <td th:text="${d.expiryDate}">2028-12-31</td>
-                                <td th:text="${d.quantityOrdered}" class="fw-bold">100</td>
-                                <td th:text="${d.quantityReceived}" class="fw-bold text-primary">120</td>
-                                <td th:text="${#numbers.formatDecimal(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">18,000 đ</td>
-                                <td th:text="${#numbers.formatDecimal(d.purchasePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}" class="text-danger fw-bold">20,000 đ</td>
+                                <td th:text="${d.orderedQuantity}" class="fw-bold">100</td>
+                                <td th:text="${d.receivedQuantity}" class="fw-bold text-primary">120</td>
+                                <td th:text="${#numbers.formatInteger(d.actualUnitPrice, 1, 'COMMA')} + ' đ'" class="text-danger fw-bold">20,000 đ</td>
                                 <td>
-                                    <span th:if="${d.quantityReceived > d.quantityOrdered}" class="text-danger fw-bold d-block">Vượt số lượng (+<span th:text="${d.quantityReceived - d.quantityOrdered}">20</span>)</span>
-                                    <span th:if="${d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) > 0}" class="text-danger fw-bold d-block">Vượt giá duyệt</span>
-                                    <span th:if="${d.quantityReceived <= d.quantityOrdered && d.purchasePrice.compareTo(d.goodsReceipt.purchaseRequest.details[0].estimatedPrice) <= 0}" class="text-success fw-bold">Hợp lệ (Khớp)</span>
+                                    <span th:if="${d.receivedQuantity > d.orderedQuantity}" class="text-danger fw-bold d-block">
+                                        Vượt số lượng (+<span th:text="${d.receivedQuantity - d.orderedQuantity}">20</span>)
+                                    </span>
+                                    <span th:if="${d.receivedQuantity <= d.orderedQuantity}" class="text-success fw-bold">Khớp số lượng</span>
                                 </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(gr.details)}">
+                                <td colspan="7" class="text-muted py-4">Không có dòng chi tiết nào</td>
                             </tr>
                             </tbody>
                         </table>

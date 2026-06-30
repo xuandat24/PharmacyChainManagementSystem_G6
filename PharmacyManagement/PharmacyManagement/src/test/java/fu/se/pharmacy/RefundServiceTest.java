@@ -73,9 +73,9 @@ class RefundServiceTest {
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(refundRequestRepository.findBySaleId(1)).thenReturn(List.of());
             when(refundRequestRepository.save(any())).thenReturn(pendingRequest);
-            when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(appUserRepository.findById(5)).thenReturn(Optional.empty());
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.empty());
+            // FIX: impl dùng findLatestBySaleId() → gọi findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1)).thenReturn(List.of());
 
             RefundRequestDTO result = refundService.createRequest(input, 5);
 
@@ -126,7 +126,7 @@ class RefundServiceTest {
         @Test
         @DisplayName("Manager duyet - so tien <= 2tr, phuong thuc CASH - thanh cong")
         void approveByManager_cash_withinLimit_success() {
-            pendingRequest.setRefundAmount(1_500_000); // <= 2tr
+            pendingRequest.setRefundAmount(1_500_000);
 
             Payment cashPayment = new Payment();
             cashPayment.setPaymentMethod("CASH");
@@ -134,7 +134,9 @@ class RefundServiceTest {
             cashPayment.setSaleId(1);
 
             when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(cashPayment));
+            // FIX: impl gọi findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                    .thenReturn(List.of(cashPayment));
             when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(saleDetailRepository.findBySaleId(1)).thenReturn(List.of());
@@ -150,9 +152,11 @@ class RefundServiceTest {
         @Test
         @DisplayName("Manager duyet - so tien > 2tr - nem exception")
         void approveByManager_aboveLimit_throwsException() {
-            pendingRequest.setRefundAmount(3_000_000); // > 2tr
+            pendingRequest.setRefundAmount(3_000_000);
 
             when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
+            // FIX: impl check hạn mức trước khi check payment method
+            // nên không cần mock paymentRepository ở đây
 
             assertThatThrownBy(() -> refundService.approveByManager(1, 2))
                     .isInstanceOf(RuntimeException.class)
@@ -162,14 +166,16 @@ class RefundServiceTest {
         @Test
         @DisplayName("Manager duyet - phuong thuc ONLINE - nem exception")
         void approveByManager_onlinePayment_throwsException() {
-            pendingRequest.setRefundAmount(500_000); // trong han muc
+            pendingRequest.setRefundAmount(500_000);
 
             Payment onlinePayment = new Payment();
             onlinePayment.setPaymentMethod("ONLINE");
             onlinePayment.setSaleId(1);
 
             when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(onlinePayment));
+            // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                    .thenReturn(List.of(onlinePayment));
 
             assertThatThrownBy(() -> refundService.approveByManager(1, 2))
                     .isInstanceOf(RuntimeException.class)
@@ -179,7 +185,7 @@ class RefundServiceTest {
         @Test
         @DisplayName("Manager duyet - yeu cau khong o PENDING - nem exception")
         void approveByManager_nonPending_throwsException() {
-            pendingRequest.setStatus("APPROVED"); // da duyet roi
+            pendingRequest.setStatus("APPROVED");
 
             when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
 
@@ -200,7 +206,7 @@ class RefundServiceTest {
         @Test
         @DisplayName("Admin duyet - bat ky so tien - thanh cong")
         void approveByAdmin_anyAmount_success() {
-            pendingRequest.setRefundAmount(5_000_000); // vuot han muc manager
+            pendingRequest.setRefundAmount(5_000_000);
 
             Payment onlinePayment = new Payment();
             onlinePayment.setPaymentMethod("ONLINE");
@@ -210,7 +216,9 @@ class RefundServiceTest {
             when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(saleDetailRepository.findBySaleId(1)).thenReturn(List.of());
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(onlinePayment));
+            // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                    .thenReturn(List.of(onlinePayment));
             when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(appUserRepository.findById(anyInt())).thenReturn(Optional.empty());
@@ -250,8 +258,9 @@ class RefundServiceTest {
                 assertThat(r.getApprovedBy()).isEqualTo(2);
                 return r;
             });
+            // FIX: toDTO() gọi findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1)).thenReturn(List.of());
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
-            when(paymentRepository.findBySaleId(1)).thenReturn(Optional.empty());
             when(appUserRepository.findById(anyInt())).thenReturn(Optional.empty());
 
             RefundRequestDTO result = refundService.reject(1, 2);
@@ -271,28 +280,30 @@ class RefundServiceTest {
         detail.setSaleId(1);
         detail.setMedicineId(1);
         detail.setQuantity(10);
-        detail.setInventoryBatchId(5); // lo da tru
+        detail.setInventoryBatchId(5);
 
         InventoryBatch batch = new InventoryBatch();
         batch.setInventoryBatchId(5);
-        batch.setQuantityOnHand(90); // ban 10 con 90
+        batch.setQuantityOnHand(90);
         batch.setStatus("AVAILABLE");
 
         Payment cashPayment = new Payment();
         cashPayment.setPaymentMethod("CASH");
         cashPayment.setSaleId(1);
 
-        pendingRequest.setRefundAmount(1_000_000); // trong han muc manager
+        pendingRequest.setRefundAmount(1_000_000);
 
         when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
-        when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(cashPayment));
+        // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+        when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                .thenReturn(List.of(cashPayment));
         when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
         when(saleDetailRepository.findBySaleId(1)).thenReturn(List.of(detail));
         when(inventoryBatchRepository.findById(5)).thenReturn(Optional.of(batch));
         when(inventoryBatchRepository.save(any())).thenAnswer(inv -> {
             InventoryBatch b = inv.getArgument(0);
-            assertThat(b.getQuantityOnHand()).isEqualTo(100); // 90 + 10 hoan lai
+            assertThat(b.getQuantityOnHand()).isEqualTo(100); // 90 + 10
             return b;
         });
         when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -316,7 +327,7 @@ class RefundServiceTest {
         InventoryBatch disposedBatch = new InventoryBatch();
         disposedBatch.setInventoryBatchId(7);
         disposedBatch.setQuantityOnHand(0);
-        disposedBatch.setStatus("DISPOSED"); // lo da tieu thu het
+        disposedBatch.setStatus("DISPOSED");
 
         Payment cashPayment = new Payment();
         cashPayment.setPaymentMethod("CASH");
@@ -325,14 +336,16 @@ class RefundServiceTest {
         pendingRequest.setRefundAmount(500_000);
 
         when(refundRequestRepository.findById(1)).thenReturn(Optional.of(pendingRequest));
-        when(paymentRepository.findBySaleId(1)).thenReturn(Optional.of(cashPayment));
+        // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
+        when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
+                .thenReturn(List.of(cashPayment));
         when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
         when(saleDetailRepository.findBySaleId(1)).thenReturn(List.of(detail));
         when(inventoryBatchRepository.findById(7)).thenReturn(Optional.of(disposedBatch));
         when(inventoryBatchRepository.save(any())).thenAnswer(inv -> {
             InventoryBatch b = inv.getArgument(0);
-            assertThat(b.getStatus()).isEqualTo("AVAILABLE"); // khoi phuc
+            assertThat(b.getStatus()).isEqualTo("AVAILABLE");
             assertThat(b.getQuantityOnHand()).isEqualTo(5);
             return b;
         });

@@ -1,5 +1,6 @@
 package fu.se.pharmacy.controller;
 
+import fu.se.pharmacy.config.AuthInterceptor;
 import fu.se.pharmacy.dto.SaleDTO;
 import fu.se.pharmacy.entity.AppUser;
 import fu.se.pharmacy.entity.Medicine;
@@ -16,6 +17,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+/**
+ * Phân quyền theo tài liệu nghiệp vụ (Người 3 - Bán hàng):
+ * "Pharmacist tạo hóa đơn DRAFT, thêm thuốc, thanh toán."
+ * "Hóa đơn DRAFT — Pharmacist được tự hủy."
+ * → CHỈ Pharmacist được thao tác giỏ hàng (cart/add, cart/update, cart/remove,
+ *   cart/set-customer, cart/set-prescription, cart/cancel).
+ * Admin/BranchManager chỉ xem lịch sử hóa đơn để giám sát, không trực tiếp bán hàng.
+ */
 @Controller
 @RequestMapping("/sales")
 public class SaleController {
@@ -31,14 +40,12 @@ public class SaleController {
 
     @GetMapping("/cart")
     public String cart(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        // FIX: chỉ Pharmacist được vào giỏ hàng/bán hàng
+        AppUser user = AuthInterceptor.requireRole(session, "Pharmacist");
 
-        // BUG FIX 8: ADMIN không có branchId → createDraft với branchId=null
-        // → SQL NOT NULL constraint fail khi insert sale
         if (user.getBranchId() == null) {
             model.addAttribute("error",
-                    "Tài khoản Admin không thuộc chi nhánh nào. Vui lòng dùng tài khoản Pharmacist để bán hàng.");
+                    "Tài khoản không thuộc chi nhánh nào. Vui lòng liên hệ Admin để được gán chi nhánh.");
             model.addAttribute("sale", null);
             model.addAttribute("medicines", List.of());
             return "sales/cart";
@@ -62,10 +69,12 @@ public class SaleController {
     }
 
     @PostMapping("/cart/add")
-    public String addItem(@RequestParam Integer saleId,
+    public String addItem(HttpSession session,
+                          @RequestParam Integer saleId,
                           @RequestParam Integer medicineId,
                           @RequestParam(defaultValue = "1") Integer quantity,
                           RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         String error = saleService.addItem(saleId, medicineId, quantity);
         if (error != null) ra.addFlashAttribute("error", error);
         else ra.addFlashAttribute("success", "Đã thêm thuốc vào đơn");
@@ -73,9 +82,11 @@ public class SaleController {
     }
 
     @PostMapping("/cart/update")
-    public String updateItem(@RequestParam Integer saleDetailId,
+    public String updateItem(HttpSession session,
+                             @RequestParam Integer saleDetailId,
                              @RequestParam Integer quantity,
                              RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         try {
             saleService.updateItemQuantity(saleDetailId, quantity);
         } catch (Exception e) {
@@ -85,31 +96,38 @@ public class SaleController {
     }
 
     @PostMapping("/cart/remove")
-    public String removeItem(@RequestParam Integer saleDetailId) {
+    public String removeItem(HttpSession session, @RequestParam Integer saleDetailId) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         saleService.removeItem(saleDetailId);
         return "redirect:/sales/cart";
     }
 
     @PostMapping("/cart/set-customer")
-    public String setCustomer(@RequestParam Integer saleId,
+    public String setCustomer(HttpSession session,
+                              @RequestParam Integer saleId,
                               @RequestParam Integer customerId,
                               RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         saleService.setCustomer(saleId, customerId);
         ra.addFlashAttribute("success", "Đã chọn khách hàng");
         return "redirect:/sales/cart";
     }
 
     @PostMapping("/cart/set-prescription")
-    public String setPrescription(@RequestParam Integer saleId,
+    public String setPrescription(HttpSession session,
+                                  @RequestParam Integer saleId,
                                   @RequestParam Integer prescriptionId,
                                   RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         saleService.setPrescription(saleId, prescriptionId);
         ra.addFlashAttribute("success", "Đã chọn đơn thuốc");
         return "redirect:/sales/cart";
     }
 
     @PostMapping("/cart/cancel")
-    public String cancelDraft(@RequestParam Integer saleId, RedirectAttributes ra) {
+    public String cancelDraft(HttpSession session, @RequestParam Integer saleId, RedirectAttributes ra) {
+        // FIX: "Hóa đơn DRAFT — Pharmacist được tự hủy" → chỉ Pharmacist
+        AuthInterceptor.requireRole(session, "Pharmacist");
         try {
             saleService.cancelDraft(saleId);
             ra.addFlashAttribute("success", "Đã hủy hóa đơn");
@@ -121,10 +139,9 @@ public class SaleController {
 
     @GetMapping
     public String list(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
-        // BUG FIX 8b: ADMIN (branchId=null) → findByBranchId(null) trả về rỗng
-        // → dùng findAll() cho ADMIN
+        // FIX: thêm requireLogin — lịch sử hóa đơn mọi role đã đăng nhập đều xem được
+        // để Admin/BranchManager giám sát, nhưng phải qua check login trước
+        AppUser user = AuthInterceptor.requireLogin(session);
         if (user.getBranchId() == null) {
             model.addAttribute("sales", saleService.findAll());
         } else {
@@ -134,7 +151,8 @@ public class SaleController {
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Integer id, Model model) {
+    public String detail(@PathVariable Integer id, HttpSession session, Model model) {
+        AuthInterceptor.requireLogin(session);
         saleService.findById(id).ifPresent(s -> model.addAttribute("sale", s));
         return "sales/invoice";
     }

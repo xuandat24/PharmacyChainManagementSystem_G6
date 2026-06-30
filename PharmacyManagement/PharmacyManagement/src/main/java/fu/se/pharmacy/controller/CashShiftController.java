@@ -1,5 +1,6 @@
 package fu.se.pharmacy.controller;
 
+import fu.se.pharmacy.config.AuthInterceptor;
 import fu.se.pharmacy.dto.CashShiftDTO;
 import fu.se.pharmacy.entity.AppUser;
 import fu.se.pharmacy.service.CashShiftService;
@@ -14,6 +15,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+/**
+ * Phân quyền theo tài liệu nghiệp vụ (Người 3 - Chốt ca):
+ * "Pharmacist nhập tiền mặt thực tế... Branch Manager xác nhận."
+ * → Mở ca / đóng ca: chỉ Pharmacist (người trực tiếp bán hàng, giữ tiền mặt).
+ * → Xác nhận ca (sau khi Pharmacist đóng): chỉ BranchManager.
+ * → Admin chỉ xem để theo dõi, không trực tiếp mở/đóng/xác nhận ca.
+ */
 @Controller
 @RequestMapping("/cash-shifts")
 public class CashShiftController {
@@ -26,14 +34,11 @@ public class CashShiftController {
 
     @GetMapping
     public String list(HttpSession session, Model model) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        AppUser user = AuthInterceptor.requireLogin(session);
 
         model.addAttribute("openShift",
                 cashShiftService.getOpenShift(user.getUserId()).orElse(null));
 
-        // FIX: Admin (branchId=null) → findByBranchId(null) trả về rỗng
-        // → Admin phải dùng findAll hoặc method riêng
         List<CashShiftDTO> allShifts;
         if (user.isAdmin()) {
             allShifts = cashShiftService.findAll();
@@ -47,10 +52,10 @@ public class CashShiftController {
 
     @PostMapping("/open")
     public String open(HttpSession session, RedirectAttributes ra) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        // FIX: chỉ Pharmacist mở ca (người trực tiếp bán hàng giữ tiền mặt)
+        AppUser user = AuthInterceptor.requireRole(session, "Pharmacist");
         if (user.getBranchId() == null) {
-            ra.addFlashAttribute("error", "Admin không có chi nhánh, không thể mở ca.");
+            ra.addFlashAttribute("error", "Tài khoản không thuộc chi nhánh, không thể mở ca.");
             return "redirect:/cash-shifts";
         }
         cashShiftService.openShift(user.getUserId(), user.getBranchId());
@@ -59,7 +64,8 @@ public class CashShiftController {
     }
 
     @GetMapping("/close/{id}")
-    public String closeForm(@PathVariable Integer id, Model model) {
+    public String closeForm(@PathVariable Integer id, HttpSession session, Model model) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         cashShiftService.findById(id).ifPresent(s -> model.addAttribute("shift", s));
         model.addAttribute("cashShiftDTO", new CashShiftDTO());
         return "cash-shifts/close";
@@ -67,10 +73,12 @@ public class CashShiftController {
 
     @PostMapping("/close/{id}")
     public String close(@PathVariable Integer id,
+                        HttpSession session,
                         @Valid @ModelAttribute("cashShiftDTO") CashShiftDTO dto,
                         BindingResult result,
                         Model model,
                         RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Pharmacist");
         if (result.hasErrors()) {
             cashShiftService.findById(id).ifPresent(s -> model.addAttribute("shift", s));
             return "cash-shifts/close";
@@ -80,10 +88,10 @@ public class CashShiftController {
             int diff = shift.getDifferenceAmount() == null ? 0 : shift.getDifferenceAmount();
             if ("PENDING_ADMIN_REVIEW".equals(shift.getStatus())) {
                 ra.addFlashAttribute("warning",
-                        "Chênh lệch lớn (" + String.format("%,d", Math.abs(diff)) + " đ). Đang chờ Admin xem xét.");
+                        "Chenh lech lon (" + String.format("%,d", Math.abs(diff)) + " d). Dang cho Admin xem xet.");
             } else {
                 ra.addFlashAttribute("success",
-                        "Đã chốt ca. Chênh lệch: " + String.format("%,d", diff) + " đ. Chờ Manager xác nhận.");
+                        "Da chot ca. Chenh lech: " + String.format("%,d", diff) + " d. Cho Manager xac nhan.");
             }
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -93,11 +101,11 @@ public class CashShiftController {
 
     @PostMapping("/confirm/{id}")
     public String confirm(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
-        AppUser user = getUser(session);
-        if (user == null) return "redirect:/login";
+        // FIX: "Branch Manager xac nhan" -> chi BranchManager
+        AppUser user = AuthInterceptor.requireRole(session, "BranchManager");
         try {
             cashShiftService.confirmShift(id, user.getUserId());
-            ra.addFlashAttribute("success", "Đã xác nhận ca");
+            ra.addFlashAttribute("success", "Da xac nhan ca");
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

@@ -22,19 +22,28 @@
         <div class="col-md-10 bg-light p-4">
             <div class="pb-3 mb-4 border-bottom">
                 <h2 class="text-secondary fw-bold">Duyệt chênh lệch kiểm kê lớn: <span th:text="'SC-' + ${count.stockCountId}">SC-001</span></h2>
-                <p class="text-muted">Chi nhánh: <strong th:text="${count.branch.branchName}">Branch A</strong> | Người kiểm: <span th:text="${count.createdBy.fullName}">Nguyen Van An</span></p>
+                <!--
+                    FIX: count.branch lazy navigation cần fallback an toàn.
+                    FIX: count.createdBy là Integer (user_id), KHÔNG có .fullName
+                -->
+                <p class="text-muted">
+                    Chi nhánh: <strong th:text="${count.branch != null ? count.branch.branchName : 'CN-' + count.branchId}">Branch A</strong>
+                    | Người kiểm: <span th:text="'User #' + ${count.createdBy}">Nguyen Van An</span>
+                </p>
+                <p class="text-danger fw-bold">
+                    Tổng giá trị chênh lệch: <span th:text="${#numbers.formatInteger(count.totalVarianceAmount, 1, 'COMMA')} + ' đ'"></span>
+                </p>
             </div>
 
             <div class="card shadow-sm border-0 bg-white p-4">
                 <form th:action="@{/stock-counts/admin/approve/{id}(id=${count.stockCountId})}" method="post">
                     <h5 class="fw-bold border-bottom pb-2 mb-3">Danh sách thuốc chênh lệch</h5>
-                    
+
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered align-middle text-center">
                             <thead class="table-light">
                             <tr>
-                                <th>Tên Thuốc</th>
-                                <th>Số Lô</th>
+                                <th>Lô Hàng</th>
                                 <th>Tồn Sổ Sách</th>
                                 <th>Thực Tế Đếm</th>
                                 <th>Chênh Lệch</th>
@@ -42,13 +51,28 @@
                             </tr>
                             </thead>
                             <tbody>
+                            <!--
+                                FIX toàn bộ field sai trong bản gốc:
+                                - d.medicine.medicineName → StockCountDetail KHÔNG có field .medicine,
+                                  chỉ có .inventoryBatch (lazy, theo inventory_batch_id). Hiển thị inventoryBatchId
+                                  trực tiếp, hoặc join qua inventoryBatch.medicineId nếu lazy load được.
+                                - d.batchNumber → KHÔNG tồn tại trong StockCountDetail entity.
+                                  Dùng d.inventoryBatch.batchNumber (lazy navigation có sẵn) với fallback.
+                            -->
                             <tr th:each="d : ${count.details}" th:classappend="${d.difference != 0} ? 'variance-row' : ''">
-                                <td class="text-start ps-3" th:text="${d.medicine.medicineName}">Medicine Name</td>
-                                <td th:text="${d.batchNumber}">PA001</td>
+                                <td class="text-start ps-3">
+                                    <span th:if="${d.inventoryBatch != null}"
+                                          th:text="${d.inventoryBatch.batchNumber} + ' (MED-' + ${d.inventoryBatch.medicineId} + ')'">Medicine Name</span>
+                                    <span th:unless="${d.inventoryBatch != null}"
+                                          th:text="'Lô #' + ${d.inventoryBatchId}"></span>
+                                </td>
                                 <td th:text="${d.systemQuantity}">100</td>
                                 <td th:text="${d.actualQuantity}" class="fw-bold text-primary">95</td>
                                 <td th:text="${d.difference}" class="fw-bold text-danger"> -5</td>
                                 <td class="text-start" th:text="${d.reason}">Hao hụt tự nhiên</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(count.details)}">
+                                <td colspan="5" class="text-muted py-4">Không có dòng chi tiết nào</td>
                             </tr>
                             </tbody>
                         </table>

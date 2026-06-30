@@ -19,7 +19,6 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
 
     @Autowired private PurchaseRequestRepository purchaseRequestRepository;
     @Autowired private PurchaseRequestDetailRepository detailRepository;
-    // FIX: Bỏ EmployeeRepository - dùng Integer adminId trực tiếp
 
     @Override
     public List<PurchaseRequest> getAllRequests() {
@@ -28,7 +27,6 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
 
     @Override
     public List<PurchaseRequest> getRequestsByBranch(Integer branchId) {
-        // FIX: findByBranch_BranchId → findByBranchIdOrderByRequestDateDesc (entity dùng integer FK)
         return purchaseRequestRepository.findByBranchIdOrderByRequestDateDesc(branchId);
     }
 
@@ -41,11 +39,10 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
     @Override
     @Transactional
     public PurchaseRequest saveRequest(PurchaseRequest request) {
-        // FIX: Bỏ detail.setPurchaseRequest(request) - entity dùng purchaseRequestId integer
-        // Lưu request trước để có ID
         if (request.getRequestDate() == null) {
             request.setRequestDate(LocalDateTime.now());
         }
+
         // Tính tổng dự kiến
         int total = 0;
         if (request.getDetails() != null) {
@@ -56,15 +53,24 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
         }
         request.setTotalEstimatedAmount(total);
 
+        // FIX: Bước 1 - lưu PurchaseRequest TRƯỚC, KHÔNG kèm details
+        // (entity có cascade=ALL trên details, nếu save cả request lẫn details cùng lúc
+        //  thì Hibernate cascade insert detail TRƯỚC KHI vòng lặp set purchaseRequestId
+        //  chạy tới → detail bị insert với purchase_request_id = NULL → lỗi NOT NULL constraint)
+        List<PurchaseRequestDetail> details = request.getDetails();
+        request.setDetails(null); // tránh cascade insert detail ở bước này
+
         PurchaseRequest saved = purchaseRequestRepository.save(request);
 
-        // Set purchaseRequestId cho details và save
-        if (saved.getDetails() != null) {
-            for (PurchaseRequestDetail d : saved.getDetails()) {
+        // FIX: Bước 2 - giờ đã có purchaseRequestId, gán vào từng detail rồi mới save
+        if (details != null) {
+            for (PurchaseRequestDetail d : details) {
                 d.setPurchaseRequestId(saved.getPurchaseRequestId());
                 detailRepository.save(d);
             }
+            saved.setDetails(details);
         }
+
         return saved;
     }
 
@@ -88,7 +94,6 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
             throw new IllegalStateException("Chi yeu cau SUBMITTED moi duoc duyet.");
         }
 
-        // FIX: Map theo purchaseRequestDetailId thay vì getRequestDetailId()
         Map<Integer, Integer> approvedQtyMap = approvedDetails.stream()
                 .filter(d -> d.getPurchaseRequestDetailId() != null)
                 .collect(Collectors.toMap(
@@ -98,11 +103,9 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
         boolean fullyApproved = true;
         boolean hasSomeApproval = false;
 
-        List<PurchaseRequestDetail> dbDetails = detailRepository
-                .findByPurchaseRequestId(requestId);
+        List<PurchaseRequestDetail> dbDetails = detailRepository.findByPurchaseRequestId(requestId);
 
         for (PurchaseRequestDetail detail : dbDetails) {
-            // FIX: getRequestDetailId() → getPurchaseRequestDetailId()
             Integer approvedQty = approvedQtyMap.getOrDefault(detail.getPurchaseRequestDetailId(), 0);
 
             int requested = detail.getRequestedQuantity() != null ? detail.getRequestedQuantity() : 0;
@@ -117,7 +120,6 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
             if (approvedQty > 0) hasSomeApproval = true;
         }
 
-        // FIX: setApprovedBy(admin) → setApprovedBy(adminId integer)
         request.setApprovedBy(adminId);
         request.setApprovedAt(LocalDateTime.now());
         request.setNote(adminNotes);
@@ -144,7 +146,6 @@ public class PurchaseRequestServiceImpl implements PurchaseRequestService {
         request.setNote(adminNotes);
         request.setStatus("REJECTED");
 
-        // Reset approved qty về 0
         detailRepository.findByPurchaseRequestId(requestId).forEach(d -> {
             d.setApprovedQuantity(0);
             detailRepository.save(d);

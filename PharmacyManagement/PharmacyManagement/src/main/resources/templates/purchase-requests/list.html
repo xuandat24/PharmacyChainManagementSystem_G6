@@ -19,13 +19,11 @@
             <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
                 <h2 class="text-secondary fw-bold">Quản lý Yêu cầu nhập hàng</h2>
                 <div class="d-flex gap-2">
-                    <!-- BranchManager: tạo mới -->
                     <div th:if="${user.role == 'BranchManager'}">
                         <a href="/purchase-requests/create" class="btn btn-success">
                             <i class="fa-solid fa-plus me-1"></i>Tạo yêu cầu mới
                         </a>
                     </div>
-                    <!-- Admin: xem phiếu chờ duyệt nhanh -->
                     <div th:if="${user.role == 'Admin'}">
                         <a href="/goods-receipts/admin/pending" class="btn btn-outline-warning">
                             <i class="fa-solid fa-bell me-1"></i>Phiếu nhận chờ duyệt
@@ -34,7 +32,6 @@
                 </div>
             </div>
 
-            <!-- flash messages -->
             <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
                 <span th:text="${success}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -60,12 +57,15 @@
                         </thead>
                         <tbody>
                         <tr th:each="req : ${requests}">
-                            <td class="fw-bold text-primary"
-                                th:text="'PR-' + ${req.purchaseRequestId}"></td>
+                            <td class="fw-bold text-primary" th:text="'PR-' + ${req.purchaseRequestId}"></td>
+                            <!-- FIX: open-in-view=true → branch lazy load OK trong template -->
                             <td th:text="${req.branch != null ? req.branch.branchName : 'CN-' + req.branchId}"></td>
                             <td th:text="${req.requestDate != null ? #temporals.format(req.requestDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                            <!-- FIX: supplier lazy load OK -->
                             <td th:text="${req.supplier != null ? req.supplier.supplierName : 'NCC-' + req.supplierId}"></td>
-                            <td th:text="${#numbers.formatInteger(req.totalEstimatedAmount, 1, 'COMMA')} + ' đ'"></td>
+                            <td class="fw-semibold"
+                                th:text="${#numbers.formatInteger((req.totalEstimatedAmount ?: 0),1,'COMMA')} + ' đ'">
+                            </td>
                             <td>
                                 <span th:if="${req.status == 'DRAFT'}" class="badge bg-secondary">Nháp</span>
                                 <span th:if="${req.status == 'SUBMITTED'}" class="badge bg-warning text-dark">Chờ duyệt</span>
@@ -74,48 +74,40 @@
                                 <span th:if="${req.status == 'REJECTED'}" class="badge bg-danger">Bị từ chối</span>
                                 <span th:if="${req.status == 'CANCELLED'}" class="badge bg-light text-dark border">Đã hủy</span>
                                 <span th:if="${req.status == 'RECEIVING'}" class="badge bg-primary">Đang nhận</span>
+                                <!-- FIX: COMPLETED badge phải hiển thị đúng màu -->
                                 <span th:if="${req.status == 'COMPLETED'}" class="badge bg-success">Hoàn tất</span>
                             </td>
                             <td>
-                                <!-- === BRANCH MANAGER === -->
+                                <!-- Branch Manager -->
                                 <div th:if="${user.role == 'BranchManager'}" class="d-flex gap-1 justify-content-center flex-wrap">
-                                    <!-- Gửi duyệt -->
                                     <a th:if="${req.status == 'DRAFT'}"
                                        th:href="@{/purchase-requests/submit/{id}(id=${req.purchaseRequestId})}"
                                        class="btn btn-sm btn-primary"
                                        onclick="return confirm('Gửi yêu cầu đi phê duyệt?')">
                                         <i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt
                                     </a>
-                                    <!-- Hủy -->
                                     <a th:if="${req.status == 'DRAFT'}"
                                        th:href="@{/purchase-requests/cancel/{id}(id=${req.purchaseRequestId})}"
                                        class="btn btn-sm btn-outline-danger"
                                        onclick="return confirm('Hủy yêu cầu này?')">
                                         <i class="fa-solid fa-ban me-1"></i>Hủy
                                     </a>
-                                    <!-- Nhận hàng khi đã duyệt -->
                                     <a th:if="${req.status == 'APPROVED' or req.status == 'PARTIALLY_APPROVED'}"
                                        th:href="@{/goods-receipts/create(requestId=${req.purchaseRequestId})}"
                                        class="btn btn-sm btn-success">
                                         <i class="fa-solid fa-truck-ramp-box me-1"></i>Nhận hàng
                                     </a>
-                                    <!-- Xem ghi chú khi bị từ chối -->
-                                    <span th:if="${req.status == 'REJECTED' and req.note != null}"
-                                          class="text-muted small fst-italic"
-                                          th:title="${req.note}">
-                                        <i class="fa-solid fa-circle-info"></i> Xem ghi chú
-                                    </span>
+                                    <span th:if="${req.status == 'COMPLETED' or req.status == 'RECEIVING' or req.status == 'REJECTED' or req.status == 'CANCELLED' or req.status == 'SUBMITTED'}"
+                                          class="text-muted small">—</span>
                                 </div>
 
-                                <!-- === ADMIN === -->
+                                <!-- Admin -->
                                 <div th:if="${user.role == 'Admin'}" class="d-flex gap-1 justify-content-center">
-                                    <!-- Xem & Duyệt khi SUBMITTED -->
                                     <a th:if="${req.status == 'SUBMITTED'}"
                                        th:href="@{/purchase-requests/admin/approve/{id}(id=${req.purchaseRequestId})}"
                                        class="btn btn-sm btn-warning text-white">
                                         <i class="fa-solid fa-gavel me-1"></i>Xem & Duyệt
                                     </a>
-                                    <!-- Từ chối nhanh -->
                                     <form th:if="${req.status == 'SUBMITTED'}"
                                           th:action="@{/purchase-requests/admin/reject/{id}(id=${req.purchaseRequestId})}"
                                           method="post" class="d-inline">
@@ -124,14 +116,11 @@
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     </form>
-                                    <!-- Đã xử lý: hiện trạng thái thêm -->
-                                    <span th:if="${req.status != 'SUBMITTED'}"
-                                          class="text-muted small">—</span>
+                                    <span th:if="${req.status != 'SUBMITTED'}" class="text-muted small">—</span>
                                 </div>
 
-                                <!-- === PHARMACIST: chỉ đọc === -->
-                                <span th:if="${user.role == 'Pharmacist'}"
-                                      class="text-muted small">Chỉ xem</span>
+                                <!-- Pharmacist -->
+                                <span th:if="${user.role == 'Pharmacist'}" class="text-muted small">Chỉ xem</span>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(requests)}">

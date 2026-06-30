@@ -18,16 +18,19 @@
         <div class="col-md-10 bg-light p-4">
             <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
                 <h2 class="text-secondary fw-bold">Nhật ký Biến động Kho</h2>
-                <a href="/inventory" class="btn btn-secondary">Quay lại Kho</a>
+                <a href="/inventory" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Quay lại Kho
+                </a>
             </div>
 
-            <div class="card shadow-sm border-0 bg-white">
+            <!-- Admin: có cột Chi Nhánh -->
+            <div th:if="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
                 <div class="card-body p-0">
                     <table class="table table-hover align-middle mb-0 text-center">
                         <thead class="table-light">
                         <tr>
                             <th>Mã GD</th>
-                            <th th:if="${user.role == 'Admin'}">Chi Nhánh ID</th>
+                            <th>Chi Nhánh</th>
                             <th>Thuốc ID</th>
                             <th>Lô ID</th>
                             <th>Loại Biến Động</th>
@@ -39,26 +42,13 @@
                         <tbody>
                         <tr th:each="tx : ${transactions}">
                             <td class="fw-bold text-secondary" th:text="'TX-' + ${tx.transactionId}"></td>
-                            <!--
-                                FIX: tx.branch.branchName → InventoryTransaction có @ManyToOne Branch (lazy)
-                                Dùng fallback nếu lazy không load
-                            -->
-                            <td th:if="${user.role == 'Admin'}"
-                                th:text="${tx.branch != null ? tx.branch.branchName : 'CN-' + tx.branchId}"></td>
-                            <!--
-                                FIX: tx.medicine.medicineName → InventoryTransaction có @ManyToOne Medicine (lazy)
-                                Dùng fallback
-                            -->
+                            <td th:text="${tx.branch != null ? tx.branch.branchName : 'CN-' + tx.branchId}"></td>
                             <td th:text="${tx.medicine != null ? tx.medicine.medicineName : 'MED-' + tx.medicineId}"></td>
-                            <!--
-                                FIX: tx.batchNumber không có trong InventoryTransaction entity.
-                                Chỉ có inventoryBatchId (int FK).
-                            -->
                             <td th:text="${tx.inventoryBatchId != null ? 'Lô #' + tx.inventoryBatchId : '-'}"></td>
                             <td>
                                 <span th:if="${tx.transactionType == 'RECEIPT'}" class="badge bg-success">Nhập hàng</span>
                                 <span th:if="${tx.transactionType == 'SALE'}" class="badge bg-primary">Bán lẻ</span>
-                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info">Nhận điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info text-dark">Nhận điều chuyển</span>
                                 <span th:if="${tx.transactionType == 'TRANSFER_OUT'}" class="badge bg-warning text-dark">Xuất điều chuyển</span>
                                 <span th:if="${tx.transactionType == 'ADJUSTMENT_IN'}" class="badge bg-success">Kiểm kê tăng</span>
                                 <span th:if="${tx.transactionType == 'ADJUSTMENT_OUT'}" class="badge bg-danger">Kiểm kê giảm</span>
@@ -67,21 +57,62 @@
                             <td th:text="${tx.referenceId}"></td>
                             <td class="fw-bold"
                                 th:classappend="${tx.quantityChange > 0} ? 'text-success' : 'text-danger'">
-                                <span th:text="${tx.quantityChange > 0 ? '+' : ''}"></span>
-                                <span th:text="${tx.quantityChange}"></span>
+                                <span th:text="${tx.quantityChange > 0 ? '+' + tx.quantityChange : tx.quantityChange}"></span>
                             </td>
-                            <!-- FIX: tx.transactionDate (đúng tên field entity) -->
                             <td th:text="${tx.transactionDate != null ? #temporals.format(tx.transactionDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(transactions)}">
-                            <td th:colspan="${user.role == 'Admin' ? 8 : 7}" class="text-muted py-4">
-                                Chưa có giao dịch biến động kho nào
-                            </td>
+                            <td colspan="8" class="text-muted py-4">Chưa có giao dịch biến động kho nào</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- Manager/Pharmacist: không có cột Chi Nhánh -->
+            <div th:unless="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã GD</th>
+                            <th>Thuốc ID</th>
+                            <th>Lô ID</th>
+                            <th>Loại Biến Động</th>
+                            <th>Ref ID</th>
+                            <th>Số Lượng</th>
+                            <th>Thời Gian</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="tx : ${transactions}">
+                            <td class="fw-bold text-secondary" th:text="'TX-' + ${tx.transactionId}"></td>
+                            <td th:text="${tx.medicine != null ? tx.medicine.medicineName : 'MED-' + tx.medicineId}"></td>
+                            <td th:text="${tx.inventoryBatchId != null ? 'Lô #' + tx.inventoryBatchId : '-'}"></td>
+                            <td>
+                                <span th:if="${tx.transactionType == 'RECEIPT'}" class="badge bg-success">Nhập hàng</span>
+                                <span th:if="${tx.transactionType == 'SALE'}" class="badge bg-primary">Bán lẻ</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info text-dark">Nhận điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_OUT'}" class="badge bg-warning text-dark">Xuất điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_IN'}" class="badge bg-success">Kiểm kê tăng</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_OUT'}" class="badge bg-danger">Kiểm kê giảm</span>
+                                <span th:if="${tx.transactionType == 'SALE_RETURN'}" class="badge bg-secondary">Hoàn trả</span>
+                            </td>
+                            <td th:text="${tx.referenceId}"></td>
+                            <td class="fw-bold"
+                                th:classappend="${tx.quantityChange > 0} ? 'text-success' : 'text-danger'">
+                                <span th:text="${tx.quantityChange > 0 ? '+' + tx.quantityChange : tx.quantityChange}"></span>
+                            </td>
+                            <td th:text="${tx.transactionDate != null ? #temporals.format(tx.transactionDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="7" class="text-muted py-4">Chưa có giao dịch biến động kho nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

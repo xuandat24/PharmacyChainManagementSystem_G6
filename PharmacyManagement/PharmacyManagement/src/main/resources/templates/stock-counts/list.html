@@ -50,49 +50,45 @@
                         </thead>
                         <tbody>
                         <tr th:each="c : ${counts}">
-                            <td class="fw-bold text-primary"
-                                th:text="'SC-' + ${c.stockCountId}"></td>
+                            <td class="fw-bold text-primary" th:text="'SC-' + ${c.stockCountId}"></td>
+                            <!-- FIX: branch lazy load OK với open-in-view=true -->
                             <td th:text="${c.branch != null ? c.branch.branchName : 'CN-' + c.branchId}"></td>
                             <td th:text="${c.countDate != null ? #temporals.format(c.countDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
-                            <!-- Thêm cột chênh lệch giá trị -->
-                            <td th:text="${c.totalVarianceAmount != null ? #numbers.formatInteger(c.totalVarianceAmount, 1, 'COMMA') + ' đ' : '-'}"
+                            <td th:text="${c.totalVarianceAmount != null and c.totalVarianceAmount > 0 ? #numbers.formatInteger(c.totalVarianceAmount, 1, 'COMMA') + ' đ' : '-'}"
                                 th:classappend="${c.totalVarianceAmount != null and c.totalVarianceAmount > 0} ? 'text-danger fw-bold' : ''"></td>
                             <td>
                                 <span th:if="${c.status == 'DRAFT'}" class="badge bg-secondary">Đang kiểm</span>
-                                <!-- Fix: SUBMITTED thay vì PENDING_ADMIN_APPROVAL (sau khi fix StockCountService) -->
                                 <span th:if="${c.status == 'SUBMITTED'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
                                 <span th:if="${c.status == 'PENDING_ADMIN_APPROVAL'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
                                 <span th:if="${c.status == 'APPROVED'}" class="badge bg-success">Đã duyệt</span>
+                                <!-- FIX: DB dùng POSTED (không phải COMPLETED) -->
                                 <span th:if="${c.status == 'POSTED'}" class="badge bg-success">Hoàn tất</span>
+                                <!-- Fallback cho data cũ có thể đã lưu COMPLETED -->
+                                <span th:if="${c.status == 'COMPLETED'}" class="badge bg-success">Hoàn tất</span>
                                 <span th:if="${c.status == 'REJECTED'}" class="badge bg-danger">Bị từ chối</span>
                                 <span th:if="${c.status == 'CANCELLED'}" class="badge bg-light text-dark border">Đã bác bỏ</span>
                             </td>
                             <td>
                                 <!-- BranchManager -->
                                 <div th:if="${user.role == 'BranchManager'}" class="d-flex gap-1 justify-content-center">
-                                    <!-- Nhập số liệu khi DRAFT -->
                                     <a th:if="${c.status == 'DRAFT'}"
                                        th:href="@{/stock-counts/edit/{id}(id=${c.stockCountId})}"
                                        class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-pencil me-1"></i>Nhập số liệu
                                     </a>
-                                    <!-- Chờ duyệt: thông báo -->
                                     <span th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
                                           class="badge bg-info text-dark">Đang chờ Admin</span>
-                                    <!-- Đã hoàn tất -->
-                                    <span th:if="${c.status == 'POSTED' or c.status == 'APPROVED'}"
+                                    <span th:if="${c.status == 'POSTED' or c.status == 'APPROVED' or c.status == 'COMPLETED'}"
                                           class="text-success small"><i class="fa-solid fa-check"></i> Xong</span>
                                 </div>
 
                                 <!-- Admin -->
                                 <div th:if="${user.role == 'Admin'}" class="d-flex gap-1 justify-content-center">
-                                    <!-- Xem & duyệt khi SUBMITTED hoặc PENDING_ADMIN_APPROVAL -->
                                     <a th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
                                        th:href="@{/stock-counts/admin/approve/{id}(id=${c.stockCountId})}"
                                        class="btn btn-sm btn-warning text-white">
                                         <i class="fa-solid fa-gavel me-1"></i>Xem & Duyệt
                                     </a>
-                                    <!-- Từ chối nhanh -->
                                     <form th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
                                           th:action="@{/stock-counts/admin/reject/{id}(id=${c.stockCountId})}"
                                           method="post" class="d-inline">
@@ -106,8 +102,7 @@
                                 </div>
 
                                 <!-- Pharmacist -->
-                                <span th:if="${user.role == 'Pharmacist'}"
-                                      class="text-muted small">Chỉ xem</span>
+                                <span th:if="${user.role == 'Pharmacist'}" class="text-muted small">Chỉ xem</span>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(counts)}">
