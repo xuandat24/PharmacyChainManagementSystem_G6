@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Tài khoản</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('appusers')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <!-- FIX: đổi "Danh sách Nhân viên" → "Quản lý Tài khoản" -->
+                <h2 class="text-secondary fw-bold">Quản lý Tài khoản</h2>
+                <!-- FIX: đổi "Thêm nhân viên mới" → "Thêm tài khoản mới" -->
+                <a th:href="@{/appusers/new}" class="btn btn-success">
+                    <i class="fa-solid fa-user-plus me-1"></i>Thêm tài khoản mới
+                </a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width:50px">ID</th>
+                            <th>Họ và Tên</th>
+                            <th>Tài khoản</th>
+                            <!-- FIX: đổi "Quyền (Role ID)" → "Vai trò" — hiện tên role thật -->
+                            <th class="text-center">Vai trò</th>
+                            <!-- FIX: đổi "Chi nhánh (Branch ID)" → "Chi nhánh" — hiện tên chi nhánh thật -->
+                            <th class="text-center">Chi nhánh</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="emp : ${appusers}">
+                            <td class="text-center fw-bold" th:text="${emp.userId}"></td>
+                            <td class="fw-bold text-primary" th:text="${emp.fullName}"></td>
+                            <td>
+                                <code class="text-danger" th:text="${emp.username}"></code>
+                            </td>
+                            <td class="text-center">
+                                <!-- FIX: gọi emp.getRole() thay vì emp.roleId (số thô) -->
+                                <span th:if="${emp.role == 'Admin'}"
+                                      class="badge bg-danger">Admin</span>
+                                <span th:if="${emp.role == 'BranchManager'}"
+                                      class="badge bg-warning text-dark">Quản lý CN</span>
+                                <span th:if="${emp.role == 'Pharmacist'}"
+                                      class="badge bg-success">Dược sĩ</span>
+                                <span th:if="${emp.role == 'Unknown'}"
+                                      class="badge bg-secondary" th:text="'Role #' + ${emp.roleId}"></span>
+                            </td>
+                            <td class="text-center">
+                                <!-- FIX: lookup tên chi nhánh từ branches list thay vì hiện số branchId thô -->
+                                <span th:if="${emp.branchId == null}" class="text-muted fst-italic">Toàn hệ thống</span>
+                                <span th:unless="${emp.branchId == null}">
+                                    <th:block th:each="b : ${branches}">
+                                        <span th:if="${b.branchId == emp.branchId}"
+                                              th:text="${b.branchName}"></span>
+                                    </th:block>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span th:if="${emp.status == 'ACTIVE'}"
+                                      class="badge bg-success">Đang hoạt động</span>
+                                <span th:if="${emp.status == 'INACTIVE'}"
+                                      class="badge bg-danger">Đã khóa</span>
+                            </td>
+                            <td class="text-center">
+                                <!-- Không cho sửa/khóa chính tài khoản admin -->
+                                <div th:unless="${emp.username == 'admin'}" class="d-flex gap-1 justify-content-center">
+                                    <a th:href="@{/appusers/edit/{id}(id=${emp.userId})}"
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="fa-solid fa-pen-to-square"></i> Sửa
+                                    </a>
+                                    <a th:href="@{/appusers/delete/{id}(id=${emp.userId})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Khóa tài khoản này?')">
+                                        <i class="fa-solid fa-lock"></i> Khóa
+                                    </a>
+                                </div>
+                                <span th:if="${emp.username == 'admin'}"
+                                      class="text-muted fst-italic small">Tài khoản hệ thống</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(appusers)}">
+                            <td colspan="7" class="text-muted py-4 text-center">Chưa có tài khoản nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

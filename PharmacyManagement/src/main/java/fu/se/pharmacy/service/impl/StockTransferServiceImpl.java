@@ -16,11 +16,13 @@ import fu.se.pharmacy.repository.StockTransferRepository;
 import fu.se.pharmacy.service.AuditLogService;
 import fu.se.pharmacy.service.InventoryService;
 import fu.se.pharmacy.service.NotificationService;
+import fu.se.pharmacy.service.PeriodClosingService;
 import fu.se.pharmacy.service.StockTransferService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -34,6 +36,7 @@ public class StockTransferServiceImpl implements StockTransferService {
     private final InventoryService inventoryService;
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
+    private final PeriodClosingService periodClosingService;
     private final JdbcTemplate jdbcTemplate;
 
     public StockTransferServiceImpl(StockTransferRepository stockTransferRepository,
@@ -41,12 +44,14 @@ public class StockTransferServiceImpl implements StockTransferService {
                                     InventoryService inventoryService,
                                     AuditLogService auditLogService,
                                     NotificationService notificationService,
+                                    PeriodClosingService periodClosingService,
                                     JdbcTemplate jdbcTemplate) {
         this.stockTransferRepository = stockTransferRepository;
         this.stockTransferDetailRepository = stockTransferDetailRepository;
         this.inventoryService = inventoryService;
         this.auditLogService = auditLogService;
         this.notificationService = notificationService;
+        this.periodClosingService = periodClosingService;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -142,6 +147,9 @@ public class StockTransferServiceImpl implements StockTransferService {
         if (transfer.getStatus() != StockTransferStatus.APPROVED) {
             throw new BusinessException("Chỉ được gửi hàng khi phiếu đã được duyệt");
         }
+        if (periodClosingService.isDateLocked(LocalDate.now())) {
+            throw new BusinessException("Kỳ kế toán hiện tại đã bị khóa, không thể gửi hàng điều chuyển");
+        }
 
         Map<Integer, StockTransferSendRequest.Item> itemMap = request.getItems().stream()
                 .collect(Collectors.toMap(StockTransferSendRequest.Item::getStockTransferDetailId, i -> i));
@@ -179,6 +187,9 @@ public class StockTransferServiceImpl implements StockTransferService {
         assertUserExists(request.getReceivedBy());
         if (transfer.getStatus() != StockTransferStatus.IN_TRANSIT) {
             throw new BusinessException("Chỉ được nhận hàng khi phiếu đang vận chuyển");
+        }
+        if (periodClosingService.isDateLocked(LocalDate.now())) {
+            throw new BusinessException("Kỳ kế toán hiện tại đã bị khóa, không thể nhận hàng điều chuyển");
         }
 
         Map<Integer, StockTransferReceiveRequest.Item> itemMap = request.getItems().stream()
