@@ -2,78 +2,103 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Thông tin Nhân viên</title>
+    <title>Quản lý Tài khoản</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Nhập thông tin Nhân viên</h4>
-                </div>
-                <div class="card-body">
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('appusers')}"></div>
+        <div class="col-md-10 p-4">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <i class="fa-solid fa-user-gear me-2"></i>
+                                <!-- FIX: tiêu đề đổi từ "Nhân viên" → "Tài khoản" -->
+                                <span th:text="${appUser.userId != null} ? 'Sửa Tài khoản' : 'Tạo Tài khoản Mới'"></span>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${error}" class="alert alert-danger fw-bold" th:text="${error}"></div>
+                            <div th:if="${success}" class="alert alert-success fw-bold" th:text="${success}"></div>
 
-                    <!-- ĐOẠN CODE HIỂN THỊ LỖI NẰM Ở ĐÂY -->
-                    <div th:if="${error}" class="alert alert-danger fw-bold text-center" role="alert" th:text="${error}">
+                            <form th:action="@{/appusers/save}" th:object="${appUser}" method="post">
+                                <input type="hidden" th:field="*{userId}" />
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" th:field="*{fullName}" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Tài khoản (Username) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" th:field="*{username}" required />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        Mật khẩu
+                                        <!-- FIX: khi edit thì password không bắt buộc (để trống = giữ pass cũ) -->
+                                        <span th:if="${appUser.userId == null}" class="text-danger">*</span>
+                                        <small th:unless="${appUser.userId == null}" class="text-muted fw-normal">
+                                            (Để trống để giữ mật khẩu cũ)
+                                        </small>
+                                    </label>
+                                    <input type="password" class="form-control" th:field="*{passwordHash}"
+                                           th:required="${appUser.userId == null}"
+                                           placeholder="Nhập mật khẩu mới..." />
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Vai trò <span class="text-danger">*</span></label>
+                                        <select class="form-select" th:field="*{roleId}" required>
+                                            <option value="" disabled selected>-- Chọn vai trò --</option>
+                                            <!-- FIX: đổi ${employee.roleId} → ${appUser.roleId} (biến đúng trong model) -->
+                                            <option th:each="r : ${roles}"
+                                                    th:value="${r.roleId}"
+                                                    th:text="${r.roleName}"
+                                                    th:selected="${r.roleId == appUser.roleId}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Chi nhánh</label>
+                                        <select class="form-select" th:field="*{branchId}">
+                                            <option value="">-- Toàn hệ thống (Admin) --</option>
+                                            <option th:each="b : ${branches}"
+                                                    th:value="${b.branchId}"
+                                                    th:text="${b.branchName}"
+                                                    th:selected="${b.branchId == appUser.branchId}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Trạng thái</label>
+                                    <select class="form-select" th:field="*{status}">
+                                        <option value="ACTIVE">Đang hoạt động</option>
+                                        <option value="INACTIVE">Đã khóa</option>
+                                    </select>
+                                </div>
+
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a th:href="@{/appusers}" class="btn btn-secondary">
+                                        <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu dữ liệu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-
-                    <form th:action="@{/appusers/save}" th:object="${appUser}" method="post">
-                        <input type="hidden" th:field="*{userId}" />
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" th:field="*{fullName}" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Tài khoản (Username) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" th:field="*{username}" required />
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" th:field="*{passwordHash}" required placeholder="Nhập mật khẩu..." />
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Phân quyền (Role) <span class="text-danger">*</span></label>
-                                <select class="form-select" th:field="*{roleId}" required>
-                                    <option value="" disabled selected>-- Chọn quyền --</option>
-                                    <!-- ĐÃ CẬP NHẬT: Ẩn quyền Admin (roleId=1) nếu không phải đang sửa chính Admin -->
-                                    <option th:each="r : ${roles}"
-                                            th:value="${r.roleId}"
-                                            th:text="${r.roleName}"
-                                            th:if="${r.roleId != 1 or employee.roleId == 1}">
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Chi nhánh làm việc <span class="text-danger">*</span></label>
-                                <select class="form-select" th:field="*{branchId}" required>
-                                    <option value="" disabled selected>-- Chọn chi nhánh --</option>
-                                    <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Trạng thái</label>
-                            <select class="form-select" th:field="*{status}">
-                                <option value="ACTIVE">Đang làm việc</option>
-                                <option value="INACTIVE">Đã nghỉ việc</option>
-                            </select>
-                        </div>
-
-                        <hr>
-                        <div class="d-flex justify-content-end gap-2">
-                            <a th:href="@{/appusers}" class="btn btn-secondary">Quay lại</a>
-                            <button type="submit" class="btn btn-success">Lưu dữ liệu</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

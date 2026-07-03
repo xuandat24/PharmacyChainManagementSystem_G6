@@ -15,6 +15,7 @@ import fu.se.pharmacy.repository.StockTransferDetailRepository;
 import fu.se.pharmacy.repository.StockTransferRepository;
 import fu.se.pharmacy.service.AuditLogService;
 import fu.se.pharmacy.service.InventoryService;
+import fu.se.pharmacy.service.SystemSettingService;
 import fu.se.pharmacy.service.NotificationService;
 import fu.se.pharmacy.service.PeriodClosingService;
 import fu.se.pharmacy.service.StockTransferService;
@@ -38,6 +39,7 @@ public class StockTransferServiceImpl implements StockTransferService {
     private final NotificationService notificationService;
     private final PeriodClosingService periodClosingService;
     private final JdbcTemplate jdbcTemplate;
+    private final SystemSettingService systemSettingService;
 
     public StockTransferServiceImpl(StockTransferRepository stockTransferRepository,
                                     StockTransferDetailRepository stockTransferDetailRepository,
@@ -45,7 +47,8 @@ public class StockTransferServiceImpl implements StockTransferService {
                                     AuditLogService auditLogService,
                                     NotificationService notificationService,
                                     PeriodClosingService periodClosingService,
-                                    JdbcTemplate jdbcTemplate) {
+                                    JdbcTemplate jdbcTemplate,
+                                    SystemSettingService systemSettingService) {
         this.stockTransferRepository = stockTransferRepository;
         this.stockTransferDetailRepository = stockTransferDetailRepository;
         this.inventoryService = inventoryService;
@@ -53,6 +56,7 @@ public class StockTransferServiceImpl implements StockTransferService {
         this.notificationService = notificationService;
         this.periodClosingService = periodClosingService;
         this.jdbcTemplate = jdbcTemplate;
+        this.systemSettingService = systemSettingService;
     }
 
     @Override
@@ -276,11 +280,9 @@ public class StockTransferServiceImpl implements StockTransferService {
     }
 
     private int getIntSetting(String key, int defaultValue) {
-        List<Integer> values = jdbcTemplate.query(
-                "SELECT TRY_CAST(setting_value AS INT) FROM system_settings WHERE setting_key = ?",
-                (rs, rowNum) -> rs.getInt(1), key
-        );
-        return values.isEmpty() ? defaultValue : values.get(0);
+        // FIX: dùng SystemSettingService thay vì JDBC riêng để nhất quán
+        // với RefundServiceImpl, StockCountServiceImpl, CashShiftServiceImpl
+        return systemSettingService.getIntegerValue(key, defaultValue);
     }
 
     private String generateCode(String prefix) {

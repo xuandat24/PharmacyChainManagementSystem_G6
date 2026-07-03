@@ -15,38 +15,22 @@ public class SystemSettingServiceImpl implements SystemSettingService {
 
     private final SystemSettingRepository repository;
 
-    @Override
-    public List<SystemSetting> getAllSettings() {
-        return repository.findAll();
-    }
+    @Override public List<SystemSetting> getAllSettings() { return repository.findAll(); }
+    @Override public SystemSetting saveSetting(SystemSetting setting) { return repository.save(setting); }
+    @Override public SystemSetting getSettingById(Integer id) { return repository.findById(id).orElse(null); }
 
+    // FIX: thêm deleteSetting - controller cần nhưng interface chưa có
     @Override
-    public SystemSetting saveSetting(SystemSetting setting) {
-        return repository.save(setting);
+    public void deleteSetting(Integer id) {
+        repository.deleteById(id);
     }
-
-    @Override
-    public SystemSetting getSettingById(Integer id) {
-        return repository.findById(id).orElse(null);
-    }
-
-    // FIX: bổ sung 3 method đọc hạn mức theo key — trước đây interface chỉ có CRUD chung,
-    // khiến các service khác (StockCount, CashShift, Refund) phải hardcode hạn mức hoặc
-    // tự viết JDBC riêng (StockTransfer, Expense), dẫn tới hạn mức lệch với bảng cấu hình
-    // mà Admin chỉnh trong màn /settings.
 
     @Override
     public BigDecimal getMoneyLimit(String key, BigDecimal defaultValue) {
         return repository.findBySettingKey(key)
                 .map(SystemSetting::getSettingValue)
                 .filter(v -> v != null && !v.isBlank())
-                .map(v -> {
-                    try {
-                        return new BigDecimal(v.trim());
-                    } catch (NumberFormatException ex) {
-                        return defaultValue;
-                    }
-                })
+                .map(v -> { try { return new BigDecimal(v.trim()); } catch (Exception e) { return defaultValue; } })
                 .orElse(defaultValue);
     }
 
@@ -55,13 +39,7 @@ public class SystemSettingServiceImpl implements SystemSettingService {
         return repository.findBySettingKey(key)
                 .map(SystemSetting::getSettingValue)
                 .filter(v -> v != null && !v.isBlank())
-                .map(v -> {
-                    try {
-                        return (int) Double.parseDouble(v.trim());
-                    } catch (NumberFormatException ex) {
-                        return defaultValue;
-                    }
-                })
+                .map(v -> { try { return (int) Double.parseDouble(v.trim()); } catch (Exception e) { return defaultValue; } })
                 .orElse(defaultValue);
     }
 

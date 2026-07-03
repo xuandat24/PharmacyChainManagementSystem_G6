@@ -6,10 +6,13 @@ import fu.se.pharmacy.entity.SystemSetting;
 import fu.se.pharmacy.service.SystemSettingService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Date;
 
 @Controller
 @RequestMapping("/settings")
@@ -34,16 +37,25 @@ public class SystemSettingController {
 
     @PostMapping("/save")
     public String saveSetting(@ModelAttribute("setting") SystemSettingDTO dto,
-                              HttpSession session, RedirectAttributes ra) {
+                              HttpSession session, RedirectAttributes ra, Model model) {
         AuthInterceptor.requireRole(session, "Admin");
+
         SystemSetting setting = new SystemSetting();
         setting.setSettingId(dto.getSettingId());
         setting.setSettingKey(dto.getSettingKey());
         setting.setSettingValue(dto.getSettingValue());
         setting.setDescription(dto.getDescription());
-        setting.setUpdatedAt(dto.getUpdatedAt());
-        service.saveSetting(setting);
-        ra.addFlashAttribute("success", "Da cap nhat cau hinh he thong");
+        // FIX: set updatedAt tự động thay vì lấy từ form (SystemSetting không có field status)
+        setting.setUpdatedAt(new Date());
+
+        try {
+            service.saveSetting(setting);
+            ra.addFlashAttribute("success", "Đã cập nhật cấu hình hệ thống");
+        } catch (DataIntegrityViolationException e) {
+            model.addAttribute("error", "Key cấu hình này đã tồn tại!");
+            model.addAttribute("setting", dto);
+            return "settings/form";
+        }
         return "redirect:/settings";
     }
 
@@ -57,13 +69,23 @@ public class SystemSettingController {
             dto.setSettingKey(setting.getSettingKey());
             dto.setSettingValue(setting.getSettingValue());
             dto.setDescription(setting.getDescription());
-            dto.setUpdatedAt(setting.getUpdatedAt());
             model.addAttribute("setting", dto);
             return "settings/form";
         }
         return "redirect:/settings";
     }
 
-
-
+    // FIX: thêm route /delete/{id} - trước đây settings/list.html có nút Xóa
+    // nhưng controller không có handler → 404 khi bấm Xóa
+    @GetMapping("/delete/{id}")
+    public String deleteSetting(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
+        AuthInterceptor.requireRole(session, "Admin");
+        try {
+            service.deleteSetting(id);
+            ra.addFlashAttribute("success", "Đã xóa cấu hình");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Không thể xóa: " + e.getMessage());
+        }
+        return "redirect:/settings";
+    }
 }

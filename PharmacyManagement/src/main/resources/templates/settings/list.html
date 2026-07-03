@@ -3,41 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <title>Cấu hình Hệ thống</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
-<div th:replace="~{fragments/navbar :: navbar}"></div>
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Cấu hình Hệ thống</h2>
-        <a th:href="@{/settings/new}" class="btn btn-primary">+ Thêm cấu hình mới</a>
-    </div>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-bordered table-hover align-middle"><thead class="table-dark">
-            <tr>
-                <th class="text-center">ID</th>
-                <th>Khóa (Key)</th>
-                <th>Giá trị (Value)</th>
-                <th>Mô tả</th>
-                <th class="text-center">Thao tác</th>
-            </tr>
-            </thead>
-                <tbody>
-                <tr th:each="s : ${settings}">
-                    <td class="text-center" th:text="${s.settingId}"></td>
-                    <td class="fw-bold text-danger" th:text="${s.settingKey}"></td>
-                    <td class="fw-bold text-primary" th:text="${s.settingValue}"></td>
-                    <td th:text="${s.description}"></td>
-                    <td class="text-center">
-                        <a th:href="@{/settings/edit/{id}(id=${s.settingId})}" class="btn btn-sm btn-warning fw-bold">Sửa</a>
-                        <a th:href="@{/settings/delete/{id}(id=${s.settingId})}" class="btn btn-sm btn-danger fw-bold" onclick="return confirm('Xóa cấu hình này?');">Xóa</a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('settings')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">
+                    <i class="fa-solid fa-sliders me-2"></i>Cấu hình Hệ thống
+                </h2>
+                <a th:href="@{/settings/new}" class="btn btn-primary">
+                    <i class="fa-solid fa-plus me-1"></i>Thêm cấu hình mới
+                </a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="alert alert-info mb-3 small">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                Các hạn mức (VNĐ) được đọc tự động bởi các Service khi xử lý nghiệp vụ.
+                Thay đổi có hiệu lực ngay lần giao dịch tiếp theo.
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width:55px">ID</th>
+                            <th>Khóa (Setting Key)</th>
+                            <th style="width:160px">Giá trị</th>
+                            <th>Mô tả</th>
+                            <th class="text-center" style="width:140px">Cập nhật</th>
+                            <th class="text-center" style="width:130px">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="s : ${settings}">
+                            <td class="text-center text-muted" th:text="${s.settingId}"></td>
+                            <td>
+                                <code class="text-danger fw-bold fs-6" th:text="${s.settingKey}"></code>
+                            </td>
+                            <!--
+                                FIX: xóa hoàn toàn s.settingType — field này KHÔNG TỒN TẠI
+                                trong SystemSetting entity (chỉ có settingId, settingKey,
+                                settingValue, description, updatedAt). Hiện settingValue thô.
+                            -->
+                            <td class="fw-bold text-primary" th:text="${s.settingValue}"></td>
+                            <td class="text-muted small" th:text="${s.description}"></td>
+                            <td class="text-center small text-muted"
+                                th:text="${s.updatedAt != null ? #dates.format(s.updatedAt,'dd/MM/yy HH:mm') : '—'}">
+                            </td>
+                            <td class="text-center">
+                                <a th:href="@{/settings/edit/{id}(id=${s.settingId})}"
+                                   class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a th:href="@{/settings/delete/{id}(id=${s.settingId})}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Xóa cấu hình này? Service sẽ dùng giá trị mặc định.')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(settings)}">
+                            <td colspan="6" class="text-muted py-4 text-center">
+                                Chưa có cấu hình nào. Hãy thêm các hạn mức cần thiết.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bảng tham khảo các key chuẩn -->
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning text-dark fw-bold small">
+                    <i class="fa-solid fa-key me-1"></i>Các Setting Key chuẩn của hệ thống
+                </div>
+                <div class="card-body p-2">
+                    <table class="table table-sm mb-0 small">
+                        <thead><tr><th>Key</th><th>Đơn vị</th><th>Mặc định</th><th>Dùng bởi</th></tr></thead>
+                        <tbody>
+                        <tr><td><code>PURCHASE_APPROVAL_LIMIT</code></td><td>VNĐ</td><td>5,000,000</td><td>Yêu cầu nhập hàng</td></tr>
+                        <tr><td><code>STOCK_VARIANCE_LIMIT</code></td><td>VNĐ</td><td>500,000</td><td>Kiểm kê kho</td></tr>
+                        <tr><td><code>TRANSFER_APPROVAL_LIMIT</code></td><td>VNĐ</td><td>3,000,000</td><td>Điều chuyển kho</td></tr>
+                        <tr><td><code>EXPENSE_APPROVAL_LIMIT</code></td><td>VNĐ</td><td>1,000,000</td><td>Phiếu chi</td></tr>
+                        <tr><td><code>REFUND_APPROVAL_LIMIT</code></td><td>VNĐ</td><td>500,000</td><td>Hoàn tiền</td></tr>
+                        <tr><td><code>CASH_SHIFT_VARIANCE_LIMIT</code></td><td>VNĐ</td><td>500,000</td><td>Chốt ca tiền mặt</td></tr>
+                        <tr><td><code>EXPIRY_WARNING_DAYS</code></td><td>Ngày</td><td>60</td><td>Cảnh báo hết hạn</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

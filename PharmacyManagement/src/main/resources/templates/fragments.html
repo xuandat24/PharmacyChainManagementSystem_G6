@@ -27,9 +27,16 @@
         <h1 th:text="${title}">Tiêu đề</h1>
         <p th:text="${subtitle}">Mô tả</p>
     </div>
-    <div class="flow4-user">
-        <strong>Người dùng hiện tại</strong>
-        <span>Demo user ID: 1</span>
+    <!-- FIX: hiển thị user thật từ session thay vì hardcode "Demo user ID: 1" -->
+    <div class="flow4-user" style="display:flex;align-items:center;gap:12px;">
+        <div th:if="${session.loggedInUser != null}">
+            <strong th:text="${session.loggedInUser.fullName}">Người dùng</strong>
+            <span th:text="${session.loggedInUser.role}" style="display:block;font-size:0.8em;opacity:0.7;"></span>
+        </div>
+        <!-- Nút đăng xuất cho dashboard Người 4 -->
+        <a href="/logout" style="background:#e74c3c;color:white;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:0.85em;white-space:nowrap;">
+            ⏏ Đăng xuất
+        </a>
     </div>
 </header>
 

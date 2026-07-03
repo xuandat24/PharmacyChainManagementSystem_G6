@@ -11,6 +11,7 @@ import fu.se.pharmacy.exception.BusinessException;
 import fu.se.pharmacy.exception.ResourceNotFoundException;
 import fu.se.pharmacy.repository.ExpenseVoucherRepository;
 import fu.se.pharmacy.service.AuditLogService;
+import fu.se.pharmacy.service.SystemSettingService;
 import fu.se.pharmacy.service.ExpenseService;
 import fu.se.pharmacy.service.NotificationService;
 import fu.se.pharmacy.service.PeriodClosingService;
@@ -29,17 +30,20 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
     private final JdbcTemplate jdbcTemplate;
+    private final SystemSettingService systemSettingService;
 
     public ExpenseServiceImpl(ExpenseVoucherRepository expenseVoucherRepository,
                               PeriodClosingService periodClosingService,
                               AuditLogService auditLogService,
                               NotificationService notificationService,
-                              JdbcTemplate jdbcTemplate) {
+                              JdbcTemplate jdbcTemplate,
+                              SystemSettingService systemSettingService) {
         this.expenseVoucherRepository = expenseVoucherRepository;
         this.periodClosingService = periodClosingService;
         this.auditLogService = auditLogService;
         this.notificationService = notificationService;
         this.jdbcTemplate = jdbcTemplate;
+        this.systemSettingService = systemSettingService;
     }
 
     @Override
@@ -162,11 +166,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     private int getIntSetting(String key, int defaultValue) {
-        List<Integer> values = jdbcTemplate.query(
-                "SELECT TRY_CAST(setting_value AS INT) FROM system_settings WHERE setting_key = ?",
-                (rs, rowNum) -> rs.getInt(1), key
-        );
-        return values.isEmpty() ? defaultValue : values.get(0);
+        // FIX: dùng SystemSettingService thay vì JDBC riêng
+        return systemSettingService.getIntegerValue(key, defaultValue);
     }
 
     private String generateCode(String prefix) {
