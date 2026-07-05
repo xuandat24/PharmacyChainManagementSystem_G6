@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Duyệt chênh lệch nhận hàng - Pharmacy Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .variance-row { background-color: #fff3cd !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="~{layout/sidebar :: sidebar('receipt')}"></div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 bg-light p-4">
+            <div class="pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Duyệt Chênh Lệch Phiếu Nhận: <span th:text="'GR-' + ${gr.receiptId}">GR-001</span></h2>
+                <!--
+                    FIX: GoodsReceipt KHÔNG có field .purchaseRequest object (chỉ có purchaseRequestId Integer)
+                    và cũng KHÔNG có .branch lazy navigation đảm bảo luôn load được.
+                    Hiển thị bằng ID kèm fallback an toàn.
+                -->
+                <p class="text-muted">
+                    Yêu cầu nhập: <strong th:text="'PR-' + ${gr.purchaseRequestId}"></strong>
+                    | Chi nhánh: <span th:text="${gr.branch != null ? gr.branch.branchName : 'CN-' + gr.branchId}">Branch A</span>
+                    | Nhà cung cấp ID: <span th:text="${gr.supplierId}"></span>
+                </p>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white p-4">
+                <form th:action="@{/goods-receipts/admin/approve-variance/{id}(id=${gr.receiptId})}" method="post">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">Bảng đối chiếu chênh lệch</h5>
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Tên Thuốc</th>
+                                <th>Số Lô</th>
+                                <th>Hạn Dùng</th>
+                                <th>Số Lượng Duyệt (PR)</th>
+                                <th>Thực Nhận (GR)</th>
+                                <th>Đơn Giá Thực Tế</th>
+                                <th>Đánh giá</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!--
+                                FIX toàn bộ field sai trong bản gốc:
+                                - d.quantityOrdered → d.orderedQuantity (đúng tên field GoodsReceiptDetail)
+                                - d.purchasePrice → d.actualUnitPrice (đúng tên field, kiểu Integer)
+                                - d.goodsReceipt.purchaseRequest.details[0].estimatedPrice → KHÔNG tồn tại,
+                                  cấu trúc entity không có chuỗi navigation này. orderedQuantity đã được
+                                  GoodsReceiptServiceImpl.submitAndCheckVariance() set sẵn từ approvedQuantity
+                                  của PurchaseRequestDetail, nên dùng trực tiếp orderedQuantity để so sánh.
+                                - #numbers.formatDecimal cho Integer → đổi sang formatInteger
+                                - d.purchasePrice.compareTo(...) (BigDecimal API) → so sánh int thông thường
+                            -->
+                            <tr th:each="d : ${gr.details}"
+                                th:classappend="${d.receivedQuantity > d.orderedQuantity} ? 'variance-row' : ''">
+                                <td class="text-start ps-3" th:text="${d.medicine != null ? d.medicine.medicineName : 'Thuốc ID: ' + d.medicineId}">Medicine Name</td>
+                                <td th:text="${d.batchNumber}">PA2026</td>
+                                <td th:text="${d.expiryDate}">2028-12-31</td>
+                                <td th:text="${d.orderedQuantity}" class="fw-bold">100</td>
+                                <td th:text="${d.receivedQuantity}" class="fw-bold text-primary">120</td>
+                                <td th:text="${#numbers.formatInteger(d.actualUnitPrice, 1, 'COMMA')} + ' đ'" class="text-danger fw-bold">20,000 đ</td>
+                                <td>
+                                    <span th:if="${d.receivedQuantity > d.orderedQuantity}" class="text-danger fw-bold d-block">
+                                        Vượt số lượng (+<span th:text="${d.receivedQuantity - d.orderedQuantity}">20</span>)
+                                    </span>
+                                    <span th:if="${d.receivedQuantity <= d.orderedQuantity}" class="text-success fw-bold">Khớp số lượng</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(gr.details)}">
+                                <td colspan="7" class="text-muted py-4">Không có dòng chi tiết nào</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="adminNotes" class="form-label fw-bold">Ghi chú duyệt chênh lệch</label>
+                        <textarea id="adminNotes" name="adminNotes" class="form-control" rows="3" placeholder="Nhập ghi chú cho việc xử lý chênh lệch này..." required></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-1"></i>Chấp nhận & Nhập kho</button>
+                        <button type="submit" th:formaction="@{/goods-receipts/admin/reject-variance/{id}(id=${gr.receiptId})}" class="btn btn-danger"><i class="fa-solid fa-xmark me-1"></i>Từ chối phiếu nhận</button>
+                        <a href="/goods-receipts" class="btn btn-secondary">Quay lại</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

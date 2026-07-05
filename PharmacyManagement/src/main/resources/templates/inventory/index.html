@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Tồn kho</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+        .card-counter { border-left: 5px solid; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('inventory')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Kiểm soát Tồn kho</h2>
+                <a href="/inventory/transactions" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i>Lịch sử biến động kho
+                </a>
+            </div>
+
+            <!-- Thống kê -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card card-counter border-success shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small fw-bold">Tổng tồn kho (Đơn vị)</h6>
+                                <h3 class="fw-bold text-success" th:text="${totalStock}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-cubes fa-2x text-success opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-counter border-warning shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small fw-bold">Lô sắp hết hạn (&lt; 90 ngày)</h6>
+                                <h3 class="fw-bold text-warning" th:text="${expiringCount}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-triangle-exclamation fa-2x text-warning opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-counter border-danger shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small fw-bold">Lô đã hết hạn</h6>
+                                <h3 class="fw-bold text-danger" th:text="${expiredCount}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-skull-crossbones fa-2x text-danger opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tìm kiếm -->
+            <div class="card shadow-sm border-0 mb-4 bg-white">
+                <div class="card-body">
+                    <form th:action="@{/inventory}" method="get" class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <input type="text" name="search" th:value="${search}" class="form-control"
+                                   placeholder="Tìm theo số lô...">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="filter" class="form-select">
+                                <option value="" th:selected="${filter == null or filter == ''}">-- Tất cả --</option>
+                                <option value="expiring" th:selected="${filter == 'expiring'}">Sắp hết hạn (&lt; 90 ngày)</option>
+                                <option value="expired" th:selected="${filter == 'expired'}">Đã hết hạn</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa-solid fa-filter me-1"></i>Áp dụng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bảng dữ liệu - Admin -->
+            <div th:if="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Chi Nhánh</th>
+                            <th>Mã Thuốc</th>
+                            <th>Số Lô</th>
+                            <th>Hạn Sử Dụng</th>
+                            <th>Số Lượng Tồn</th>
+                            <th>Giá Mua</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${stock}">
+                            <td class="text-muted small" th:text="'CN-' + ${item.branchId}"></td>
+                            <td class="fw-bold text-primary" th:text="'MED-' + ${item.medicineId}"></td>
+                            <td th:text="${item.batchNumber}"></td>
+                            <td th:text="${item.expiryDate}"></td>
+                            <td class="fw-bold text-success" th:text="${item.quantityOnHand}"></td>
+                            <td th:text="${#numbers.formatInteger(item.unitCost, 1, 'COMMA')} + ' đ'"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${item.status == 'AVAILABLE'} ? 'bg-success' : (${item.status == 'DISPOSED' or item.status == 'EXPIRED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                      th:text="${item.status}"></span>
+                            </td>
+                        </tr>
+                        <!-- FIX: tách empty row ra riêng thay vì dùng ternary trong th:colspan -->
+                        <tr th:if="${#lists.isEmpty(stock)}">
+                            <td colspan="7" class="text-muted py-4">
+                                Không có dữ liệu tồn kho thỏa mãn điều kiện
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bảng dữ liệu - Manager/Pharmacist -->
+            <div th:unless="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Thuốc</th>
+                            <th>Số Lô</th>
+                            <th>Hạn Sử Dụng</th>
+                            <th>Số Lượng Tồn</th>
+                            <th>Giá Mua</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${stock}">
+                            <td class="fw-bold text-primary" th:text="'MED-' + ${item.medicineId}"></td>
+                            <td th:text="${item.batchNumber}"></td>
+                            <td th:text="${item.expiryDate}"></td>
+                            <td class="fw-bold text-success" th:text="${item.quantityOnHand}"></td>
+                            <td th:text="${#numbers.formatInteger(item.unitCost, 1, 'COMMA')} + ' đ'"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${item.status == 'AVAILABLE'} ? 'bg-success' : (${item.status == 'DISPOSED' or item.status == 'EXPIRED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                      th:text="${item.status}"></span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(stock)}">
+                            <td colspan="6" class="text-muted py-4">
+                                Không có dữ liệu tồn kho thỏa mãn điều kiện
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

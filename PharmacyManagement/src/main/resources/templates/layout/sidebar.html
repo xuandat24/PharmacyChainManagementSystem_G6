@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div th:fragment="sidebar(activePage)" class="col-md-2 bg-dark p-0 sidebar" style="min-height: 100vh;">
+    <div class="p-3 text-white text-center border-bottom border-secondary">
+        <h5><i class="fa-solid fa-prescription-bottle-medical me-2 text-success"></i>Pharmacy Chain</h5>
+    </div>
+
+    <!-- FIX: thêm thông tin user đang đăng nhập + nút đăng xuất -->
+    <div th:if="${session.loggedInUser != null}"
+         class="px-3 py-2 border-bottom border-secondary d-flex align-items-center justify-content-between">
+        <div class="text-truncate me-2">
+            <div class="text-white fw-bold small text-truncate"
+                 th:text="${session.loggedInUser.fullName}">User</div>
+            <span class="badge mt-1"
+                  th:classappend="${session.loggedInUser.role == 'Admin'} ? 'bg-danger' :
+                                   (${session.loggedInUser.role == 'BranchManager'} ? 'bg-warning text-dark' : 'bg-success')"
+                  th:text="${session.loggedInUser.role}">Role</span>
+        </div>
+        <a href="/logout" class="btn btn-sm btn-outline-light flex-shrink-0" title="Đăng xuất">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+    </div>
+
+    <div class="list-group list-group-flush mt-2">
+        <!-- Dashboard -->
+        <a href="/" class="list-group-item list-group-item-action bg-dark text-white py-2 px-3 border-0"
+           th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <i class="fa-solid fa-chart-pie me-2"></i>Trang chủ (Dashboard)
+        </a>
+
+        <!-- NỀN TẢNG (NGƯỜI 1) -->
+        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Hệ thống (Người 1)</div>
+        <a href="/branches" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'branches'} ? 'active' : ''">
+            <i class="fa-solid fa-store me-2"></i>Quản lý Chi nhánh
+        </a>
+        <a href="/appusers" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'appusers'} ? 'active' : ''">
+            <i class="fa-solid fa-users me-2"></i>Quản lý Tài khoản
+        </a>
+        <a href="/categories" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'categories'} ? 'active' : ''">
+            <i class="fa-solid fa-tags me-2"></i>Danh mục Loại thuốc
+        </a>
+        <a href="/medicines" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'medicines'} ? 'active' : ''">
+            <i class="fa-solid fa-pills me-2"></i>Danh mục Thuốc
+        </a>
+        <a href="/settings" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'settings'} ? 'active' : ''">
+            <i class="fa-solid fa-sliders me-2"></i>Cấu hình Hệ thống
+        </a>
+
+        <!-- KHO HÀNG (NGƯỜI 2 - DÙNG ĐƯỢC) -->
+        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Kho & Hàng (Người 2)</div>
+        <a href="/inventory" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'inventory'} ? 'active' : ''">
+            <i class="fa-solid fa-warehouse me-2"></i>Quản lý Tồn kho
+        </a>
+        <a href="/purchase-requests" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'purchase-requests'} ? 'active' : ''">
+            <i class="fa-solid fa-file-import me-2"></i>Yêu cầu Nhập hàng
+        </a>
+        <a href="/goods-receipts" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'goods-receipts'} ? 'active' : ''">
+            <i class="fa-solid fa-truck-ramp-box me-2"></i>Nhận hàng vào kho
+        </a>
+        <a href="/stock-counts" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'stock-counts'} ? 'active' : ''">
+            <i class="fa-solid fa-clipboard-check me-2"></i>Kiểm kê kho thuốc
+        </a>
+        <a href="/suppliers" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'suppliers'} ? 'active' : ''">
+            <i class="fa-solid fa-truck me-2"></i>Nhà cung cấp
+        </a>
+
+        <!-- BÁN HÀNG (NGƯỜI 3) -->
+        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Bán Hàng (Người 3)</div>
+        <a href="/sales" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'sales'} ? 'active' : ''">
+            <i class="fa-solid fa-file-invoice-dollar me-2"></i>Đơn hàng & Bán lẻ
+        </a>
+        <a href="/customers" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'customers'} ? 'active' : ''">
+            <i class="fa-solid fa-user-tag me-2"></i>Khách hàng
+        </a>
+        <a href="/prescriptions" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'prescriptions'} ? 'active' : ''">
+            <i class="fa-solid fa-file-prescription me-2"></i>Quản lý Đơn thuốc
+        </a>
+
+        <a href="/cash-shifts" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'cash-shifts'} ? 'active' : ''">
+            <i class="fa-solid fa-file-cash-shift me-2"></i>Quản lý ca làm viêc
+        </a>
+
+        <a href="/refunds" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'refunds'} ? 'active' : ''">
+            <i class="fa-solid fa-file-refund me-2"></i>Quản lý hoàn tiền hoàn tiền
+        </a>
+
+        <!-- KIỂM SOÁT & BÁO CÁO (NGƯỜI 4) -->
+        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Báo cáo (Người 4)</div>
+        <!--
+            FIX: route gốc trỏ /transfers, /expenses, /reports KHÔNG khớp route thật
+            (PageController dùng prefix /flow4/*). Sửa lại cho đúng và bổ sung
+            3 mục còn thiếu: Khóa sổ, Thông báo, Audit log.
+        -->
+        <a href="/flow4/dashboard" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'flow4-dashboard'} ? 'active' : ''">
+            <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Kiểm soát
+        </a>
+        <a href="/flow4/transfers" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'transfers'} ? 'active' : ''">
+            <i class="fa-solid fa-dolly me-2"></i>Điều chuyển kho
+        </a>
+        <a href="/flow4/expenses" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'expenses'} ? 'active' : ''">
+            <i class="fa-solid fa-money-bill-transfer me-2"></i>Quản lý Phiếu chi
+        </a>
+        <a href="/flow4/reports" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'reports'} ? 'active' : ''">
+            <i class="fa-solid fa-chart-line me-2"></i>Báo cáo Thống kê
+        </a>
+        <a href="/flow4/periods" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'periods'} ? 'active' : ''">
+            <i class="fa-solid fa-lock me-2"></i>Khóa sổ kỳ kế toán
+        </a>
+        <a href="/flow4/notifications" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'notifications'} ? 'active' : ''">
+            <i class="fa-solid fa-bell me-2"></i>Thông báo
+        </a>
+        <a href="/flow4/audit-logs" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
+           th:classappend="${activePage == 'audit-logs'} ? 'active' : ''">
+            <i class="fa-solid fa-clipboard-list me-2"></i>Audit Log
+        </a>
+    </div>
+</div>
+</body>
+</html>

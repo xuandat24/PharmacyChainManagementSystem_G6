@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Đơn thuốc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>
+            <i class="fa-solid fa-prescription text-success me-2"></i>Đơn thuốc
+            <span th:if="${customer != null}" class="text-muted fs-6">
+                của <span th:text="${customer.fullName}"></span>
+            </span>
+        </h4>
+        <a th:if="${customerId != null}"
+           th:href="@{/prescriptions/create(customerId=${customerId})}"
+           class="btn btn-success">
+            <i class="fa-solid fa-plus me-1"></i>Ghi nhận đơn mới
+        </a>
+    </div>
+
+    <!-- BUG FIX 1: Khi vào /prescriptions không có customerId → nhắc chọn khách -->
+    <div th:if="${customerId == null}" class="alert alert-info">
+        <i class="fa-solid fa-info-circle me-1"></i>
+        Vui lòng chọn khách hàng để xem đơn thuốc.
+        <a href="/customers" class="btn btn-sm btn-primary ms-2">
+            <i class="fa-solid fa-users me-1"></i>Danh sách khách hàng
+        </a>
+        <div class="mt-3"><a href="/" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Trang chủ</a></div>
+    </div>
+
+    <div th:if="${customerId != null}" class="card shadow-sm border-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-success">
+            <tr>
+                <th>Mã đơn</th>
+                <th>Mã đơn thuốc</th>
+                <th>Bác sĩ</th>
+                <th>Cơ sở khám</th>
+                <th>Ngày kê</th>
+                <th>Hết hạn</th>
+                <th>Hiệu lực</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${prescriptions}">
+                <td class="fw-bold">#<span th:text="${p.prescriptionId}"></span></td>
+                <td th:text="${p.prescriptionCode}"></td>
+                <td th:text="${p.doctorName}"></td>
+                <td th:text="${p.clinicName}"></td>
+                <td th:text="${p.prescriptionDate}"></td>
+                <td th:text="${p.validUntil}"></td>
+                <td>
+                    <span th:if="${p.valid}" class="badge bg-success">Còn hạn</span>
+                    <span th:unless="${p.valid}" class="badge bg-danger">Hết hạn</span>
+                </td>
+                <td>
+                    <a th:href="@{/prescriptions/{id}(id=${p.prescriptionId})}"
+                       class="btn btn-sm btn-outline-success">Xem</a>
+                </td>
+            </tr>
+            <!-- BUG FIX 1: #lists.isEmpty an toàn hơn - không NPE khi list rỗng -->
+            <tr th:if="${prescriptions == null or #lists.isEmpty(prescriptions)}">
+                <td colspan="8" class="text-center text-muted py-4">Chưa có đơn thuốc</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3">
+        <a th:if="${customerId != null}"
+           th:href="@{/customers/{id}(id=${customerId})}"
+           class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+</div>
+</body>
+</html>

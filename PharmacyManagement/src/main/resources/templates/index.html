@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tổng quan hệ thống</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card-counter { border-left: 5px solid; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('dashboard')}"></div>
+        <div class="col-md-10 bg-light p-4">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Tổng quan hệ thống</h2>
+                <div>
+                    <i class="fa-solid fa-user-gear me-2 text-primary"></i>
+                    <!-- FIX: hiển thị tên user thật từ session, không hardcode "Admin Demo" -->
+                    <span class="fw-semibold" th:text="${user.fullName}">Admin</span>
+                    <span class="badge ms-2"
+                          th:classappend="${user.role == 'Admin'} ? 'bg-danger' : (${user.role == 'BranchManager'} ? 'bg-warning text-dark' : 'bg-success')"
+                          th:text="${user.role}">Role</span>
+                </div>
+            </div>
+
+            <!-- Thẻ thống kê - TẤT CẢ dùng data thật từ DB -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card card-counter border-success shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small">Tổng số thuốc</h6>
+                                <!-- FIX: trước đây hiện "Optional[14]" vì Spring Data wrap
+                                     Optional<Long>, đã ép tường minh thành long trong Controller -->
+                                <h3 class="fw-bold text-success" th:text="${totalMedicines}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-capsules fa-2x text-success opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-counter border-primary shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small">Số chi nhánh</h6>
+                                <!-- FIX: trước hardcode "6" -->
+                                <h3 class="fw-bold text-primary" th:text="${totalBranches}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-network-wired fa-2x text-primary opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-counter border-warning shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small">Lô sắp hết hạn (&lt;90 ngày)</h6>
+                                <!-- FIX: trước hardcode "8" -->
+                                <h3 class="fw-bold text-warning" th:text="${expiringCount}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-triangle-exclamation fa-2x text-warning opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-counter border-danger shadow-sm p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted small">Đơn hoàn thành hôm nay</h6>
+                                <!-- FIX: trước hardcode "15.4M" -->
+                                <h3 class="fw-bold text-danger" th:text="${todaySales}">0</h3>
+                            </div>
+                            <i class="fa-solid fa-receipt fa-2x text-danger opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng top thuốc thật từ DB -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold"><i class="fa-solid fa-pills text-primary me-2"></i>Danh sách thuốc đang kinh doanh</h5>
+                    <a href="/medicines/new" class="btn btn-sm btn-primary" th:if="${user.role == 'Admin'}">
+                        <i class="fa-solid fa-plus me-1"></i>Thêm thuốc mới
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Thuốc</th>
+                            <th class="text-start ps-3">Tên Thuốc</th>
+                            <th>Đơn Vị Tính</th>
+                            <th>Giá Bán</th>
+                            <th>Kê Đơn</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- FIX: dùng Medicine entity thật (salePrice không phải price) -->
+                        <tr th:each="med : ${medicines}">
+                            <td class="fw-bold text-danger" th:text="${med.medicineCode}"></td>
+                            <td class="text-start ps-3 fw-semibold" th:text="${med.medicineName}"></td>
+                            <td th:text="${med.unit}"></td>
+                            <!-- FIX: med.price → med.salePrice (đúng field trong Medicine entity) -->
+                            <td class="fw-bold text-success"
+                                th:text="${#numbers.formatInteger(med.salePrice, 1, 'COMMA')} + ' đ'"></td>
+                            <td>
+                                <span th:if="${med.requiresPrescription}" class="badge bg-warning text-dark">Rx</span>
+                                <span th:unless="${med.requiresPrescription}" class="badge bg-light text-dark border">OTC</span>
+                            </td>
+                            <td>
+                                <span th:if="${med.status == 'ACTIVE'}" class="badge bg-success">Đang bán</span>
+                                <span th:if="${med.status == 'INACTIVE'}" class="badge bg-danger">Ngừng bán</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(medicines)}">
+                            <td colspan="6" class="text-muted py-4">Chưa có thuốc nào trong hệ thống</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

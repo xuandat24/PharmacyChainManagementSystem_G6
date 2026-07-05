@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="468ff8ec-ed5c-4e3d-be6a-62b48625659a" name="Changes" comment="Tôi khóc mất">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/PharmacyManagement (2).iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/PharmacyManagementApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/config/AuthInterceptor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/config/GlobalExceptionHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/config/WebConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/CashShiftController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/CustomerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/GoodsReceiptController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/HomeController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/InventoryController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/LoginController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/PaymentCallbackController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/PaymentController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/PrescriptionController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/PurchaseRequestController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/RefundController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/SaleController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/StockCountController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/controller/SupplierController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/CashShiftDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/CustomerDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/GoodsReceiptForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/PaymentDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/PrescriptionDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/PrescriptionDetailDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/PurchaseRequestForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/RefundRequestDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/SaleDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/SaleDetailDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/dto/StockCountForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/AppUser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Branch.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/CashShift.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Category.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Customer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/GoodsReceipt.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/GoodsReceiptDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/InventoryBatch.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/InventoryTransaction.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Medicine.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Payment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/PaymentTransaction.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Prescription.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/PrescriptionDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/PurchaseRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/PurchaseRequestDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/RefundRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Sale.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/SaleDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/StockCount.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/StockCountDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/StockTransfer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/StockTransferDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/entity/Supplier.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/AppUserRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/BranchRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/CashShiftRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/CategoryRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/GoodsReceiptDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/GoodsReceiptRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/InventoryBatchRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/InventoryTransactionRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/MedicineRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PaymentRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PaymentTransactionRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PrescriptionDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PrescriptionRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PurchaseRequestDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/PurchaseRequestRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/RefundRequestRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/SaleDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/SaleRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/StockCountDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/StockCountRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/StockTransferRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/repository/SupplierRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/CashShiftService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/CustomerService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/GoodsReceiptService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/InventoryService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/PaymentService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/PrescriptionService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/PurchaseRequestService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/RefundService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/SaleService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/StockCountService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/SupplierService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/CashShiftServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/CustomerServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/GoodsReceiptServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/InventoryServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/PaymentServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/PrescriptionServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/PurchaseRequestServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/RefundServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/SaleServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/StockCountServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/service/impl/SupplierServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidDateRange.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidDateRangeValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidGender.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidGenderValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidPhone.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/ValidPhoneValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/VietnameseName.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/java/fu/se/pharmacy/validator/VietnameseNameValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/auth/login.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/auth/register.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/cash-shifts/close.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/cash-shifts/open.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/customers/create.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/customers/detail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/customers/edit.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/customers/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/error/403.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/goods-receipts/approve-variance.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/goods-receipts/create.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/goods-receipts/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/goods-receipts/pending.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/inventory/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/inventory/transactions.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/layout/header.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/layout/sidebar.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/medicine/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/payments/cash.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/payments/online.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/payments/receipt.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/prescriptions/create.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/prescriptions/detail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/prescriptions/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/purchase-requests/approve.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/purchase-requests/create.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/purchase-requests/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/refunds/approve.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/refunds/history.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/refunds/request.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/sales/cart.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/sales/history.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/sales/invoice.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/stock-counts/approve.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/stock-counts/edit.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/stock-counts/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/stock-counts/pending.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/suppliers/create.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/suppliers/edit.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/main/resources/templates/suppliers/list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/CashShiftServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/CustomerServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/GoodsReceiptServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/InventoryServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/PaymentServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/PharmacyManagementApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/PrescriptionServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/RefundServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PharmacyManagement/PharmacyManagement/src/test/java/fu/se/pharmacy/SaleServiceTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="HTML File" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;minthecat44&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/xuandat24/PharmacyChainManagementSystem_G6.git&quot;,
+    &quot;accountId&quot;: &quot;06a39683-e072-43ad-80c6-9daa0f6d018a&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="3FUtPblj5bveK97WJmyAnTsgquT" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Maven.PharmacyManagement [clean].executor": "Run",
+    "Maven.PharmacyManagement [compile].executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.PharmacyManagementApplication.executor": "Run",
+    "git-widget-placeholder": "minh__code",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/HSF302/Assignment/PharmacyChainManagementSystem_G6",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "sqlserver"
+    ]
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\HSF302\Assignment\PharmacyChainManagementSystem_G6\PharmacyManagement\PharmacyManagement\src\test\java\fu\se\pharmacy" />
+      <recent name="D:\HSF302\Assignment\PharmacyChainManagementSystem_G6\PharmacyManagement\PharmacyManagement\src\main\resources\templates" />
+      <recent name="D:\HSF302\Assignment\PharmacyChainManagementSystem_G6\PharmacyManagement\PharmacyManagement\src\main\java\fu\se\pharmacy\service\impl" />
+      <recent name="D:\HSF302\Assignment\PharmacyChainManagementSystem_G6\PharmacyManagement\PharmacyManagement\src\main\java\fu\se\pharmacy\service" />
+      <recent name="D:\HSF302\Assignment\PharmacyChainManagementSystem_G6\PharmacyManagement\PharmacyManagement\src\main\java\fu\se\pharmacy\repository" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="fu.se.pharmacy.validation" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="PharmacyManagementApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="PharmacyManagement" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="fu.se.pharmacy.PharmacyManagementApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="468ff8ec-ed5c-4e3d-be6a-62b48625659a" name="Changes" comment="" />
+      <created>1782141452476</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1782141452476</updated>
+      <workItem from="1782141454598" duration="3784000" />
+      <workItem from="1782177547314" duration="5037000" />
+      <workItem from="1782183680145" duration="6309000" />
+      <workItem from="1782209201265" duration="514000" />
+      <workItem from="1782295793444" duration="669000" />
+      <workItem from="1782434472325" duration="66000" />
+      <workItem from="1782457382063" duration="14859000" />
+      <workItem from="1782521216197" duration="3259000" />
+      <workItem from="1782545837706" duration="1039000" />
+      <workItem from="1782548126651" duration="4800000" />
+      <workItem from="1782566490576" duration="809000" />
+      <workItem from="1782567995888" duration="3257000" />
+      <workItem from="1782635048662" duration="10376000" />
+      <workItem from="1782719438808" duration="14260000" />
+      <workItem from="1782783260951" duration="4888000" />
+      <workItem from="1782788857443" duration="3923000" />
+      <workItem from="1782810932177" duration="17000" />
+    </task>
+    <task id="LOCAL-00001" summary="Hoàn thành hơn nửa nma có thể không đúng db">
+      <option name="closed" value="true" />
+      <created>1782481770659</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1782481770659</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Còn nhiều lỗi chưa sửa xong vậy nên đừng merge vội nhé">
+      <option name="closed" value="true" />
+      <created>1782481933599</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1782481933599</updated>
+    </task>
+    <task id="LOCAL-00003" summary="AppUser là Employee nhé">
+      <option name="closed" value="true" />
+      <created>1782482010241</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1782482010241</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Xong gần hết r, h còn validate dữ liệu nhập thôi">
+      <option name="closed" value="true" />
+      <created>1782523926339</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1782523926340</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Chạy thì ok r nma tôi merge hơi ngu">
+      <option name="closed" value="true" />
+      <created>1782746753866</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1782746753866</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Chạy thì ok r nma tôi merge hơi ngu">
+      <option name="closed" value="true" />
+      <created>1782747047188</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1782747047188</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Tôi khóc mất">
+      <option name="closed" value="true" />
+      <created>1782790761675</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1782790761675</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Hoàn thành hơn nửa nma có thể không đúng db" />
+    <MESSAGE value="Còn nhiều lỗi chưa sửa xong vậy nên đừng merge vội nhé" />
+    <MESSAGE value="AppUser là Employee nhé" />
+    <MESSAGE value="Xong gần hết r, h còn validate dữ liệu nhập thôi" />
+    <MESSAGE value="Chạy thì ok r nma tôi merge hơi ngu" />
+    <MESSAGE value="Tôi khóc mất" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tôi khóc mất" />
+  </component>
+</project>

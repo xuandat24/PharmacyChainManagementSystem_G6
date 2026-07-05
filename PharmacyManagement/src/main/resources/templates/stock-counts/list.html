@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kiểm kê kho</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('stock')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Quản lý Kiểm kê kho</h2>
+                <div class="d-flex gap-2">
+                    <a th:if="${user.role == 'BranchManager'}"
+                       href="/stock-counts/create" class="btn btn-success">
+                        <i class="fa-solid fa-plus me-1"></i>Tạo đợt kiểm kê mới
+                    </a>
+                    <a th:if="${user.role == 'Admin'}"
+                       href="/stock-counts/admin/pending" class="btn btn-warning text-white">
+                        <i class="fa-solid fa-bell me-1"></i>Chờ duyệt chênh lệch lớn
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã Kiểm Kê</th>
+                            <th>Chi Nhánh</th>
+                            <th>Ngày Kiểm</th>
+                            <th>Chênh Lệch (đ)</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${counts}">
+                            <td class="fw-bold text-primary" th:text="'SC-' + ${c.stockCountId}"></td>
+                            <!-- FIX: branch lazy load OK với open-in-view=true -->
+                            <td th:text="${c.branch != null ? c.branch.branchName : 'CN-' + c.branchId}"></td>
+                            <td th:text="${c.countDate != null ? #temporals.format(c.countDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                            <td th:text="${c.totalVarianceAmount != null and c.totalVarianceAmount > 0 ? #numbers.formatInteger(c.totalVarianceAmount, 1, 'COMMA') + ' đ' : '-'}"
+                                th:classappend="${c.totalVarianceAmount != null and c.totalVarianceAmount > 0} ? 'text-danger fw-bold' : ''"></td>
+                            <td>
+                                <span th:if="${c.status == 'DRAFT'}" class="badge bg-secondary">Đang kiểm</span>
+                                <span th:if="${c.status == 'SUBMITTED'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
+                                <span th:if="${c.status == 'PENDING_ADMIN_APPROVAL'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
+                                <span th:if="${c.status == 'APPROVED'}" class="badge bg-success">Đã duyệt</span>
+                                <!-- FIX: DB dùng POSTED (không phải COMPLETED) -->
+                                <span th:if="${c.status == 'POSTED'}" class="badge bg-success">Hoàn tất</span>
+                                <!-- Fallback cho data cũ có thể đã lưu COMPLETED -->
+                                <span th:if="${c.status == 'COMPLETED'}" class="badge bg-success">Hoàn tất</span>
+                                <span th:if="${c.status == 'REJECTED'}" class="badge bg-danger">Bị từ chối</span>
+                                <span th:if="${c.status == 'CANCELLED'}" class="badge bg-light text-dark border">Đã bác bỏ</span>
+                            </td>
+                            <td>
+                                <!-- BranchManager -->
+                                <div th:if="${user.role == 'BranchManager'}" class="d-flex gap-1 justify-content-center">
+                                    <a th:if="${c.status == 'DRAFT'}"
+                                       th:href="@{/stock-counts/edit/{id}(id=${c.stockCountId})}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fa-solid fa-pencil me-1"></i>Nhập số liệu
+                                    </a>
+                                    <span th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
+                                          class="badge bg-info text-dark">Đang chờ Admin</span>
+                                    <span th:if="${c.status == 'POSTED' or c.status == 'APPROVED' or c.status == 'COMPLETED'}"
+                                          class="text-success small"><i class="fa-solid fa-check"></i> Xong</span>
+                                </div>
+
+                                <!-- Admin -->
+                                <div th:if="${user.role == 'Admin'}" class="d-flex gap-1 justify-content-center">
+                                    <a th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
+                                       th:href="@{/stock-counts/admin/approve/{id}(id=${c.stockCountId})}"
+                                       class="btn btn-sm btn-warning text-white">
+                                        <i class="fa-solid fa-gavel me-1"></i>Xem & Duyệt
+                                    </a>
+                                    <form th:if="${c.status == 'SUBMITTED' or c.status == 'PENDING_ADMIN_APPROVAL'}"
+                                          th:action="@{/stock-counts/admin/reject/{id}(id=${c.stockCountId})}"
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Bác bỏ đợt kiểm kê này?')">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                    <span th:if="${c.status != 'SUBMITTED' and c.status != 'PENDING_ADMIN_APPROVAL'}"
+                                          class="text-muted small">—</span>
+                                </div>
+
+                                <!-- Pharmacist -->
+                                <span th:if="${user.role == 'Pharmacist'}" class="text-muted small">Chỉ xem</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(counts)}">
+                            <td colspan="6" class="text-muted py-4">Chưa có đợt kiểm kê nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

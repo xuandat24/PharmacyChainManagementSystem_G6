@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Biến động Kho</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #212529; }
+        .sidebar a { color: #dee2e6; text-decoration: none; }
+        .sidebar a:hover { background-color: #495057; color: white !important; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('inventory')}"></div>
+        <div class="col-md-10 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">Nhật ký Biến động Kho</h2>
+                <a href="/inventory" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Quay lại Kho
+                </a>
+            </div>
+
+            <!-- Admin: có cột Chi Nhánh -->
+            <div th:if="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã GD</th>
+                            <th>Chi Nhánh</th>
+                            <th>Thuốc ID</th>
+                            <th>Lô ID</th>
+                            <th>Loại Biến Động</th>
+                            <th>Ref ID</th>
+                            <th>Số Lượng</th>
+                            <th>Thời Gian</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="tx : ${transactions}">
+                            <td class="fw-bold text-secondary" th:text="'TX-' + ${tx.transactionId}"></td>
+                            <td th:text="${tx.branch != null ? tx.branch.branchName : 'CN-' + tx.branchId}"></td>
+                            <td th:text="${tx.medicine != null ? tx.medicine.medicineName : 'MED-' + tx.medicineId}"></td>
+                            <td th:text="${tx.inventoryBatchId != null ? 'Lô #' + tx.inventoryBatchId : '-'}"></td>
+                            <td>
+                                <span th:if="${tx.transactionType == 'RECEIPT'}" class="badge bg-success">Nhập hàng</span>
+                                <span th:if="${tx.transactionType == 'SALE'}" class="badge bg-primary">Bán lẻ</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info text-dark">Nhận điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_OUT'}" class="badge bg-warning text-dark">Xuất điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_IN'}" class="badge bg-success">Kiểm kê tăng</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_OUT'}" class="badge bg-danger">Kiểm kê giảm</span>
+                                <span th:if="${tx.transactionType == 'SALE_RETURN'}" class="badge bg-secondary">Hoàn trả</span>
+                            </td>
+                            <td th:text="${tx.referenceId}"></td>
+                            <td class="fw-bold"
+                                th:classappend="${tx.quantityChange > 0} ? 'text-success' : 'text-danger'">
+                                <span th:text="${tx.quantityChange > 0 ? '+' + tx.quantityChange : tx.quantityChange}"></span>
+                            </td>
+                            <td th:text="${tx.transactionDate != null ? #temporals.format(tx.transactionDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="8" class="text-muted py-4">Chưa có giao dịch biến động kho nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Manager/Pharmacist: không có cột Chi Nhánh -->
+            <div th:unless="${user.role == 'Admin'}" class="card shadow-sm border-0 bg-white">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Mã GD</th>
+                            <th>Thuốc ID</th>
+                            <th>Lô ID</th>
+                            <th>Loại Biến Động</th>
+                            <th>Ref ID</th>
+                            <th>Số Lượng</th>
+                            <th>Thời Gian</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="tx : ${transactions}">
+                            <td class="fw-bold text-secondary" th:text="'TX-' + ${tx.transactionId}"></td>
+                            <td th:text="${tx.medicine != null ? tx.medicine.medicineName : 'MED-' + tx.medicineId}"></td>
+                            <td th:text="${tx.inventoryBatchId != null ? 'Lô #' + tx.inventoryBatchId : '-'}"></td>
+                            <td>
+                                <span th:if="${tx.transactionType == 'RECEIPT'}" class="badge bg-success">Nhập hàng</span>
+                                <span th:if="${tx.transactionType == 'SALE'}" class="badge bg-primary">Bán lẻ</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_IN'}" class="badge bg-info text-dark">Nhận điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'TRANSFER_OUT'}" class="badge bg-warning text-dark">Xuất điều chuyển</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_IN'}" class="badge bg-success">Kiểm kê tăng</span>
+                                <span th:if="${tx.transactionType == 'ADJUSTMENT_OUT'}" class="badge bg-danger">Kiểm kê giảm</span>
+                                <span th:if="${tx.transactionType == 'SALE_RETURN'}" class="badge bg-secondary">Hoàn trả</span>
+                            </td>
+                            <td th:text="${tx.referenceId}"></td>
+                            <td class="fw-bold"
+                                th:classappend="${tx.quantityChange > 0} ? 'text-success' : 'text-danger'">
+                                <span th:text="${tx.quantityChange > 0 ? '+' + tx.quantityChange : tx.quantityChange}"></span>
+                            </td>
+                            <td th:text="${tx.transactionDate != null ? #temporals.format(tx.transactionDate,'dd/MM/yyyy HH:mm') : '-'}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="7" class="text-muted py-4">Chưa có giao dịch biến động kho nào</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

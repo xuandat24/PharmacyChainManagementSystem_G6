@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán Chuyển khoản / QR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .qr-box { border: 3px solid #0d6efd; border-radius: 12px; padding: 16px; display: inline-block; background: white; }
+        .status-badge { font-size: 1rem; padding: 8px 20px; border-radius: 20px; }
+        .pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    </style>
+</head>
+<body class="bg-light"
+      th:data-sale-id="${sale.saleId}"
+      th:data-payment-id="${payment.paymentId}"
+      th:data-payment-status="${payment.status}">
+<div class="container py-4" style="max-width:500px">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white text-center py-3">
+            <h5 class="mb-0"><i class="fa-solid fa-qrcode me-2"></i>Thanh toán Chuyển khoản / QR</h5>
+        </div>
+        <div class="card-body text-center px-4 py-4">
+
+            <!-- Thông tin hóa đơn -->
+            <div class="bg-light rounded p-3 mb-3 text-start">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted small">Hóa đơn</span>
+                    <span class="fw-bold" th:text="${sale.saleCode}"></span>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                    <span class="text-muted small">Số tiền</span>
+                    <span class="fw-bold text-success fs-5"
+                          th:text="${#numbers.formatInteger(sale.finalAmount, 1, 'COMMA')} + ' đ'"></span>
+                </div>
+                <div th:if="${sale.customerName != null}" class="d-flex justify-content-between mt-1">
+                    <span class="text-muted small">Khách hàng</span>
+                    <span th:text="${sale.customerName}"></span>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div class="qr-box mb-3">
+                <!--
+                    QR data = payment.qrNote (format: PHARMACY_PAY_{saleId}_{amount})
+                    Trong môi trường thật, thay bằng URL thanh toán của ngân hàng/ví điện tử.
+                    Ví dụ VietQR: https://img.vietqr.io/image/{bankId}-{accountNo}-{template}.png?amount={amount}&addInfo={note}
+                -->
+                <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='
+                              + ${payment.qrNote != null ? payment.qrNote : 'PHARMACY_PAY_' + sale.saleId}}"
+                     alt="QR Code" width="220" height="220" />
+            </div>
+
+            <!-- Trạng thái -->
+            <div id="statusBadge">
+                <span th:if="${payment.status == 'PENDING'}"
+                      class="badge bg-warning text-dark status-badge pulse">
+                    <i class="fa-solid fa-clock me-1"></i>Đang chờ thanh toán...
+                </span>
+                <span th:if="${payment.status == 'PAID'}"
+                      class="badge bg-success status-badge">
+                    <i class="fa-solid fa-check-circle me-1"></i>Đã thanh toán thành công!
+                </span>
+            </div>
+
+            <!-- Mã tham chiếu -->
+            <div class="mt-3 small text-muted">
+                Mã tham chiếu: <code th:text="${payment.paymentCode}"></code><br>
+                Payment ID: <strong th:text="${payment.paymentId}"></strong>
+                <span class="text-muted">(Cần cho callback)</span>
+            </div>
+
+            <!-- Hướng dẫn test -->
+            <div class="alert alert-info small mt-3 text-start">
+                <i class="fa-solid fa-flask me-1"></i><strong>Hướng dẫn test:</strong><br>
+                Gọi API callback để giả lập gateway xác nhận thanh toán:<br>
+                <code class="d-block mt-1 bg-light p-2 rounded text-wrap" style="font-size:0.75rem">
+                    POST /api/payment/callback<br>
+                    {<br>
+                    &nbsp;"paymentId": <span th:text="${payment.paymentId}"></span>,<br>
+                    &nbsp;"gatewayCode": "TEST-<span th:text="${payment.paymentId}"></span>-001",<br>
+                    &nbsp;"amount": <span th:text="${sale.finalAmount}"></span>,<br>
+                    &nbsp;"status": "SUCCESS"<br>
+                    }
+                </code>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
+                <button class="btn btn-outline-primary" onclick="checkStatus()">
+                    <i class="fa-solid fa-rotate me-1"></i>Kiểm tra trạng thái
+                </button>
+                <!-- Nút demo: gọi callback trực tiếp từ trình duyệt, không cần Postman -->
+                <button class="btn btn-success" onclick="simulatePayment()">
+                    <i class="fa-solid fa-bolt me-1"></i>Xác nhận giao dịch
+                </button>
+                <a href="/sales/cart" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+
+            <!-- Thông báo sau khi check -->
+            <div id="checkResult" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="none">
+    // Đọc từ data-* attribute thay vì [[${...}]] inline
+    // tránh IntelliJ báo lỗi parse JS (dù Thymeleaf xử lý đúng lúc runtime)
+    const saleId = document.body.dataset.saleId;
+    const paymentId = document.body.dataset.paymentId;
+
+    function checkStatus() {
+        fetch('/payments/check-status/' + saleId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'PAID') {
+                    document.getElementById('statusBadge').innerHTML =
+                        '<span class="badge bg-success status-badge">' +
+                        '<i class="fa-solid fa-check-circle me-1"></i>Đã thanh toán thành công!</span>';
+                    document.getElementById('checkResult').innerHTML =
+                        '<div class="alert alert-success mt-2">Thanh toán xác nhận! Đang chuyển hướng...</div>';
+                    setTimeout(() => window.location.href = '/payments/receipt/' + saleId, 1500);
+                } else {
+                    document.getElementById('checkResult').innerHTML =
+                        '<div class="alert alert-warning mt-2 small">Chưa nhận được xác nhận thanh toán.</div>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('checkResult').innerHTML =
+                    '<div class="alert alert-danger mt-2 small">Lỗi khi kiểm tra trạng thái.</div>';
+            });
+    }
+
+    // Nút demo: gọi thẳng /api/payment/callback từ trình duyệt
+    // không cần Postman — tiện khi demo/chấm điểm
+    function simulatePayment() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Đang xử lý...';
+
+        fetch('/api/payment/callback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                paymentId: parseInt(paymentId),
+                gatewayCode: 'DEMO-' + paymentId + '-' + Date.now(),
+                amount: parseInt(document.querySelector('.text-success.fw-bold.fs-5')
+                    ?.textContent?.replace(/[^0-9]/g,'') || 0),
+                status: 'SUCCESS'
+            })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.result === 'OK') {
+                    document.getElementById('checkResult').innerHTML =
+                        '<div class="alert alert-success mt-2">Gateway xác nhận! Đang chuyển hướng...</div>';
+                    setTimeout(() => window.location.href = '/payments/receipt/' + saleId, 1200);
+                } else {
+                    document.getElementById('checkResult').innerHTML =
+                        '<div class="alert alert-warning mt-2 small">Phản hồi: ' + JSON.stringify(data) + '</div>';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Xác nhận Demo';
+                }
+            })
+            .catch(e => {
+                document.getElementById('checkResult').innerHTML =
+                    '<div class="alert alert-danger mt-2 small">Lỗi: ' + e.message + '</div>';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Xác nhận Demo';
+            });
+    }
+
+    // Tự động poll mỗi 5 giây nếu trạng thái PENDING
+    const initialStatus = document.body.dataset.paymentStatus;
+    if (initialStatus === 'PENDING') {
+        const pollInterval = setInterval(() => {
+            fetch('/payments/check-status/' + saleId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'PAID') {
+                        clearInterval(pollInterval);
+                        window.location.href = '/payments/receipt/' + saleId;
+                    }
+                })
+                .catch(() => {}); // im lặng nếu lỗi
+        }, 5000);
+    }
+</script>
+</body>
+</html>

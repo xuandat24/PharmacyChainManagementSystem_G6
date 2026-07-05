@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><title>Hoàn tiền</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">
+            <i class="fa-solid fa-rotate-left me-2 text-warning"></i>
+            <span th:text="${pendingOnly} ? 'Yêu cầu chờ duyệt' : 'Lịch sử hoàn tiền'"></span>
+        </h4>
+        <div class="d-flex gap-2">
+            <a href="/refunds" class="btn btn-outline-secondary btn-sm">Tất cả</a>
+            <a href="/refunds/pending" class="btn btn-outline-warning btn-sm">Chờ duyệt</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Mã HĐ</th>
+                    <th>Số tiền</th>
+                    <th>PT thanh toán</th>
+                    <th>Người yêu cầu</th>
+                    <th>Lý do</th>
+                    <th>Ngày yêu cầu</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${refunds}">
+                    <td th:text="${r.refundRequestId}"></td>
+                    <td class="fw-semibold text-primary" th:text="${r.saleCode}"></td>
+                    <td class="fw-bold text-danger"
+                        th:text="${#numbers.formatInteger(r.refundAmount, 1, 'COMMA')} + ' đ'"></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${r.paymentMethod == 'CASH'} ? 'bg-success' : 'bg-info'"
+                              th:text="${r.paymentMethod}"></span>
+                    </td>
+                    <td th:text="${r.requestedByName}"></td>
+                    <td class="text-muted small" th:text="${r.reason}"></td>
+                    <td>
+                        <span th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy HH:mm')}"></span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge"
+                              th:classappend="${r.status == 'APPROVED'} ? 'bg-success'
+                                : (${r.status == 'PENDING'} ? 'bg-warning text-dark'
+                                : (${r.status == 'REJECTED'} ? 'bg-danger' : 'bg-secondary'))"
+                              th:text="${r.status}"></span>
+                    </td>
+                    <td class="text-center">
+                        <div th:if="${r.status == 'PENDING'}" class="d-flex gap-1 justify-content-center">
+                            <!-- Manager duyệt (hiển thị nếu tiền mặt và trong hạn mức) -->
+                            <form th:action="@{/refunds/approve/{id}(id=${r.refundRequestId})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        onclick="return confirm('Duyệt hoàn tiền?')">
+                                    <i class="fa-solid fa-check"></i> Duyệt
+                                </button>
+                            </form>
+                            <!-- Admin duyệt -->
+                            <form th:action="@{/refunds/approve-admin/{id}(id=${r.refundRequestId})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary"
+                                        onclick="return confirm('Admin duyệt hoàn tiền?')">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </button>
+                            </form>
+                            <!-- Từ chối -->
+                            <form th:action="@{/refunds/reject/{id}(id=${r.refundRequestId})}"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Từ chối yêu cầu này?')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <span th:if="${r.status != 'PENDING'}" class="text-muted small"
+                              th:text="${r.approvedByName != null ? r.approvedByName : '-'}"></span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(refunds)}">
+                    <td colspan="9" class="text-center text-muted py-5">
+                        <i class="fa-solid fa-rotate-left fa-2x d-block mb-2 opacity-25"></i>
+                        Không có yêu cầu hoàn tiền nào
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="/" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Trang chủ</a></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
