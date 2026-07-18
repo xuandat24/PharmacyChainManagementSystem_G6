@@ -155,6 +155,9 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public void setCustomer(Integer saleId, Integer customerId) {
         Sale sale = saleRepository.findById(saleId).orElseThrow();
+        // FIX: chỉ cho phép thay đổi khi DRAFT
+        if (!"DRAFT".equals(sale.getStatus()))
+            throw new RuntimeException("Không thể đổi khách hàng sau khi hóa đơn đã xử lý");
         sale.setCustomerId(customerId);
         saleRepository.save(sale);
     }
@@ -162,6 +165,9 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public void setPrescription(Integer saleId, Integer prescriptionId) {
         Sale sale = saleRepository.findById(saleId).orElseThrow();
+        // FIX: chỉ cho phép gán đơn thuốc khi DRAFT
+        if (!"DRAFT".equals(sale.getStatus()))
+            throw new RuntimeException("Không thể đổi đơn thuốc sau khi hóa đơn đã xử lý");
         sale.setPrescriptionId(prescriptionId);
         saleRepository.save(sale);
     }
@@ -181,7 +187,11 @@ public class SaleServiceImpl implements SaleService {
     @Override
     @Transactional
     public void completeSale(Integer saleId) {
-        Sale sale = saleRepository.findById(saleId).orElseThrow();
+        Sale sale = saleRepository.findById(saleId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn: " + saleId));
+        // FIX: chỉ hoàn tất hóa đơn ở trạng thái DRAFT (tránh double-complete)
+        if (!"DRAFT".equals(sale.getStatus()))
+            throw new RuntimeException("Hóa đơn đã được xử lý (status: " + sale.getStatus() + ")");
         if (periodClosingService.isDateLocked(LocalDate.now())) {
             throw new RuntimeException("Kỳ kế toán hiện tại đã bị khóa, không thể hoàn tất hóa đơn.");
         }

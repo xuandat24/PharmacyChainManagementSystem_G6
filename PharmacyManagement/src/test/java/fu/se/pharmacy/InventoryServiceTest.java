@@ -216,7 +216,7 @@ public class InventoryServiceTest {
         verify(inventoryBatchRepository).save(argThat(b ->
                 b.getQuantityOnHand() == 0 && "DISPOSED".equals(b.getStatus())));
         verify(transactionRepository).save(argThat(tx ->
-                tx.getQuantityChange() == -10 && "SALE".equals(tx.getTransactionType())));
+                tx.getQuantityChange() == 10 && "SALE".equals(tx.getTransactionType())));
     }
 
     @Test
@@ -269,7 +269,7 @@ public class InventoryServiceTest {
         saleTx.setInventoryBatchId(1);
         saleTx.setTransactionType("SALE");
         saleTx.setReferenceId(1);
-        saleTx.setQuantityChange(-10); // da tru 10 luc ban
+        saleTx.setQuantityChange(10); // quy uoc luon duong
 
         when(saleRepository.findById(1)).thenReturn(Optional.of(sale));
         when(transactionRepository.findByReferenceIdAndTransactionType(1, "SALE"))

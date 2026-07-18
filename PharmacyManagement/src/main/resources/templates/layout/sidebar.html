@@ -33,7 +33,7 @@
         </a>
 
         <!-- NỀN TẢNG (NGƯỜI 1) -->
-        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Hệ thống (Người 1)</div>
+        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Admin</div>
         <a href="/branches" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
            th:classappend="${activePage == 'branches'} ? 'active' : ''">
             <i class="fa-solid fa-store me-2"></i>Quản lý Chi nhánh
@@ -55,8 +55,8 @@
             <i class="fa-solid fa-sliders me-2"></i>Cấu hình Hệ thống
         </a>
 
-        <!-- KHO HÀNG (NGƯỜI 2 - DÙNG ĐƯỢC) -->
-        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Kho & Hàng (Người 2)</div>
+        <!-- Branch Manager -->
+        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Inventory and Supplies</div>
         <a href="/inventory" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
            th:classappend="${activePage == 'inventory'} ? 'active' : ''">
             <i class="fa-solid fa-warehouse me-2"></i>Quản lý Tồn kho
@@ -79,7 +79,7 @@
         </a>
 
         <!-- BÁN HÀNG (NGƯỜI 3) -->
-        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Bán Hàng (Người 3)</div>
+        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Sales and Customer</div>
         <a href="/sales" class="list-group-item list-group-item-action bg-dark text-secondary py-2 px-3 border-0"
            th:classappend="${activePage == 'sales'} ? 'active' : ''">
             <i class="fa-solid fa-file-invoice-dollar me-2"></i>Đơn hàng & Bán lẻ
@@ -104,7 +104,7 @@
         </a>
 
         <!-- KIỂM SOÁT & BÁO CÁO (NGƯỜI 4) -->
-        <div class="text-secondary small fw-bold px-3 pt-3 pb-1 text-uppercase">Báo cáo (Người 4)</div>
+        <div class="text-success small fw-bold px-3 pt-3 pb-1 text-uppercase">Report</div>
         <!--
             FIX: route gốc trỏ /transfers, /expenses, /reports KHÔNG khớp route thật
             (PageController dùng prefix /flow4/*). Sửa lại cho đúng và bổ sung

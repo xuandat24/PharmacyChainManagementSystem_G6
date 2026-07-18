@@ -26,6 +26,17 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Autowired private MedicineRepository medicineRepository; // FIX: thêm để join tên thuốc
 
     @Override
+    public List<PrescriptionDTO> findAll() {
+        // Hiển thị mọi đơn thuốc của tất cả khách hàng, đơn mới nhất lên đầu
+        return prescriptionRepository.findAll(
+                        org.springframework.data.domain.Sort.by(
+                                org.springframework.data.domain.Sort.Direction.DESC, "prescriptionId"))
+                .stream()
+                .map(p -> toResponseDTO(p, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<PrescriptionDTO> findByCustomerId(Integer customerId) {
         return prescriptionRepository.findByCustomerId(customerId)
                 .stream()

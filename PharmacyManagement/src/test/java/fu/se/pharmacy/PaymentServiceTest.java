@@ -210,7 +210,7 @@ class PaymentServiceTest {
             when(saleRepository.findById(1)).thenReturn(Optional.of(draftSale));
             // FIX: impl gọi findLatestBySaleId() - dùng default method trên PaymentRepository
             // findLatestBySaleId() gọi findBySaleIdOrderByCreatedAtDesc() → trả List.of() → Optional.empty()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1)).thenReturn(List.of());
+            when(paymentRepository.findLatestBySaleId(1)).thenReturn(Optional.empty());
             when(paymentRepository.save(any())).thenReturn(pending);
 
             PaymentDTO result = paymentService.createOnlinePayment(1);
@@ -232,8 +232,8 @@ class PaymentServiceTest {
 
             when(saleRepository.findById(1)).thenReturn(Optional.of(draftSale));
             // FIX: findLatestBySaleId() dùng findBySaleIdOrderByCreatedAtDesc → trả list có existing
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(existing));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(existing));
 
             PaymentDTO result = paymentService.createOnlinePayment(1);
 
@@ -281,9 +281,7 @@ class PaymentServiceTest {
             pending.setAmount(24000);
 
             when(paymentRepository.findById(1)).thenReturn(Optional.of(pending));
-            when(paymentTransactionRepository.existsByGatewayTransactionCode("GW-001"))
-                    .thenReturn(false);
-
+            
             // FIX: impl ném "Số tiền callback không khớp" (tiếng Việt có dấu)
             assertThatThrownBy(() -> paymentService.handleCallback(1, "GW-001", 10000, "{}"))
                     .isInstanceOf(RuntimeException.class)

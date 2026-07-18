@@ -465,3 +465,45 @@ th {
         gap: 10px;
     }
 }
+
+/* ============================================================
+   Bootstrap 5 compatibility overrides
+   (Cac trang flow4 sau khi merge dung layout sidebar chung va
+   nap Bootstrap truoc flow4.css. Bootstrap co san rule cho
+   .modal / .modal-backdrop / .toast lam an modal & toast custom,
+   nen can ghi de lai o day.)
+   ============================================================ */
+.modal-backdrop {
+    width: auto;
+    height: auto;
+    opacity: 1;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+}
+
+.modal-backdrop .modal {
+    display: block;
+    position: relative;
+    top: auto;
+    left: auto;
+    height: auto;
+    overflow: visible;
+    z-index: 1;
+}
+
+.toast {
+    display: block;
+    opacity: 1;
+}
+
+.toast:not(.show) {
+    display: block;
+}
+
+/* Vung noi dung ben phai sidebar Bootstrap */
+.col-md-10 .panel:first-of-type,
+.col-md-10 section.panel {
+    margin-top: 4px;
+}

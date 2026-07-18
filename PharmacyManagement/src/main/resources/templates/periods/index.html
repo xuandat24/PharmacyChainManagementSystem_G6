@@ -2,19 +2,17 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
-    <title>Khóa sổ tháng</title>
-    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+    <title>Khóa sổ Kỳ kế toán</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/flow4.css}" rel="stylesheet">
 </head>
 <body>
-<div class="flow4-layout">
-    <div th:replace="~{fragments :: sidebar('periods')}"></div>
-    <main class="flow4-main">
-        <div th:replace="~{fragments :: topbar('Khóa sổ tháng', 'Khóa hoặc mở lại kỳ kế toán khi cần')}"></div>
-
-        <section class="panel">
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('periods')}"></div>
+        <div class="col-md-10 bg-light p-3">
+<section class="panel">
             <div class="panel-header"><h2>Khóa kỳ</h2></div>
             <form id="periodLockForm" novalidate>
                 <div class="form-grid three">
@@ -65,11 +63,13 @@
                 </div>
             </form>
         </section>
-    </main>
+        </div>
+    </div>
 </div>
-
 <div th:replace="~{fragments :: toast}"></div>
+<div th:replace="~{fragments :: confirmModal}"></div>
 <script th:src="@{/js/flow4/common.js}"></script>
 <script th:src="@{/js/flow4/periods.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

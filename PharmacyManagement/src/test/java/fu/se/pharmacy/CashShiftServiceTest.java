@@ -123,8 +123,8 @@ class CashShiftServiceTest {
             when(cashShiftRepository.findById(1)).thenReturn(Optional.of(openShift));
             when(saleRepository.findByBranchIdOrderBySaleDateDesc(1)).thenReturn(List.of(sale));
             // FIX: impl dùng findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(cashPayment));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(cashPayment));
             when(systemSettingService.getMoneyLimit(anyString(), any()))
                     .thenReturn(BigDecimal.valueOf(500_000));
             when(cashShiftRepository.save(any())).thenAnswer(inv -> {
@@ -206,11 +206,11 @@ class CashShiftServiceTest {
             when(saleRepository.findByBranchIdOrderBySaleDateDesc(1))
                     .thenReturn(List.of(cashSale, onlineSale));
             // FIX: findBySaleId(1) → findBySaleIdOrderByCreatedAtDesc(1)
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(cashPay));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(cashPay));
             // FIX: findBySaleId(2) → findBySaleIdOrderByCreatedAtDesc(2)
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(2))
-                    .thenReturn(List.of(onlinePay));
+            when(paymentRepository.findLatestBySaleId(2))
+                    .thenReturn(Optional.of(onlinePay));
             when(systemSettingService.getMoneyLimit(anyString(), any()))
                     .thenReturn(BigDecimal.valueOf(500_000));
             when(cashShiftRepository.save(any())).thenAnswer(inv -> {

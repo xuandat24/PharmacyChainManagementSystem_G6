@@ -46,6 +46,9 @@ public class InventoryServiceImpl implements InventoryService {
         GoodsReceipt receipt = goodsReceiptRepository.findById(receiptId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu nhận hàng: " + receiptId));
 
+        // FIX: phiếu đã POSTED → bỏ qua ngay (idempotent)
+        if ("POSTED".equals(receipt.getStatus())) return;
+
         boolean alreadyPosted = !transactionRepository
                 .findByReferenceIdAndTransactionType(receiptId, "RECEIPT").isEmpty();
         if (alreadyPosted) return;
@@ -183,9 +186,11 @@ public class InventoryServiceImpl implements InventoryService {
         transfer.getDetails().forEach(detail -> {
             if (detail.getFromInventoryBatchId() != null) {
                 inventoryBatchRepository.findById(detail.getFromInventoryBatchId()).ifPresent(batch -> {
-                    if (batch.getQuantityOnHand() < detail.getRequestedQuantity())
+                    // FIX: dùng sentQuantity (số thực gửi), không phải requestedQuantity (số yêu cầu ban đầu)
+                    int sentQty = detail.getSentQuantity() != null ? detail.getSentQuantity() : detail.getRequestedQuantity();
+                    if (batch.getQuantityOnHand() < sentQty)
                         throw new IllegalStateException("Tồn kho lô không đủ để điều chuyển");
-                    batch.setQuantityOnHand(batch.getQuantityOnHand() - detail.getRequestedQuantity());
+                    batch.setQuantityOnHand(batch.getQuantityOnHand() - sentQty);
                     inventoryBatchRepository.save(batch);
 
                     InventoryTransaction tx = new InventoryTransaction();
@@ -196,7 +201,7 @@ public class InventoryServiceImpl implements InventoryService {
                     tx.setReferenceType("STOCK_TRANSFER");
                     tx.setReferenceId(transferId);
                     // FIX: lưu dương, transaction_type = "TRANSFER_OUT" biểu thị xuất
-                    tx.setQuantityChange(detail.getRequestedQuantity());
+                    tx.setQuantityChange(sentQty);
                     transactionRepository.save(tx);
                 });
             }

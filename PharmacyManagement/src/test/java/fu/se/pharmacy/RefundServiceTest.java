@@ -86,7 +86,7 @@ class RefundServiceTest {
             when(refundRequestRepository.save(any())).thenReturn(pendingRequest);
             when(appUserRepository.findById(5)).thenReturn(Optional.empty());
             // FIX: impl dùng findLatestBySaleId() → gọi findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1)).thenReturn(List.of());
+            when(paymentRepository.findLatestBySaleId(1)).thenReturn(Optional.empty());
 
             RefundRequestDTO result = refundService.createRequest(input, 5);
 
@@ -148,8 +148,8 @@ class RefundServiceTest {
             when(systemSettingService.getMoneyLimit(anyString(), any()))
                     .thenReturn(BigDecimal.valueOf(500_000));
             // FIX: impl gọi findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(cashPayment));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(cashPayment));
             when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -193,8 +193,8 @@ class RefundServiceTest {
             when(systemSettingService.getMoneyLimit(anyString(), any()))
                     .thenReturn(BigDecimal.valueOf(500_000));
             // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(onlinePayment));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(onlinePayment));
 
             assertThatThrownBy(() -> refundService.approveByManager(1, 2))
                     .isInstanceOf(RuntimeException.class)
@@ -235,8 +235,8 @@ class RefundServiceTest {
             when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                    .thenReturn(List.of(onlinePayment));
+            when(paymentRepository.findLatestBySaleId(1))
+                    .thenReturn(Optional.of(onlinePayment));
             when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(saleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(appUserRepository.findById(anyInt())).thenReturn(Optional.empty());
@@ -278,7 +278,7 @@ class RefundServiceTest {
                 return r;
             });
             // FIX: toDTO() gọi findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-            when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1)).thenReturn(List.of());
+            when(paymentRepository.findLatestBySaleId(1)).thenReturn(Optional.empty());
             when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
             when(appUserRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -307,8 +307,8 @@ class RefundServiceTest {
         when(systemSettingService.getMoneyLimit(anyString(), any()))
                 .thenReturn(BigDecimal.valueOf(500_000));
         // FIX: findLatestBySaleId() → findBySaleIdOrderByCreatedAtDesc()
-        when(paymentRepository.findBySaleIdOrderByCreatedAtDesc(1))
-                .thenReturn(List.of(cashPayment));
+        when(paymentRepository.findLatestBySaleId(1))
+                .thenReturn(Optional.of(cashPayment));
         when(refundRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(saleRepository.findById(1)).thenReturn(Optional.of(completedSale));
         when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));

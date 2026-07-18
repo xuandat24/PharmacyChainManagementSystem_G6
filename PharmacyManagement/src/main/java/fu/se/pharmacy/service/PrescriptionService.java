@@ -12,6 +12,9 @@ import java.util.Optional;
  */
 public interface PrescriptionService {
 
+    /** Lấy tất cả đơn thuốc của mọi khách hàng (mới nhất trước) */
+    List<PrescriptionDTO> findAll();
+
     /** Lấy tất cả đơn thuốc của một khách hàng */
     List<PrescriptionDTO> findByCustomerId(Integer customerId);
 

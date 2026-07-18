@@ -14,13 +14,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * Phân quyền theo tài liệu nghiệp vụ (Người 3 - Đơn thuốc):
- * "Dược sĩ chỉ ghi nhận đơn do khách cung cấp, không tự kê đơn thay bác sĩ."
- * → CHỈ Pharmacist được tạo/thêm thuốc vào đơn thuốc.
- * Admin/BranchManager chỉ xem để phục vụ tra cứu khi cần.
+ * Phân quyền:
+ * - Xem danh sách/chi tiết: mọi user đã đăng nhập
+ * - Ghi nhận / thêm thuốc: chỉ Pharmacist
  */
 @Controller
 @RequestMapping("/prescriptions")
@@ -29,9 +26,13 @@ public class PrescriptionController {
     @Autowired private PrescriptionService prescriptionService;
     @Autowired private CustomerService customerService;
 
+    /**
+     * Danh sách tất cả đơn thuốc (hoặc lọc theo KH nếu có customerId).
+     * FIX: khi không có customerId → gọi findAll() thay vì trả List.of() rỗng.
+     */
     @GetMapping
-    public String list(@RequestParam(required = false) Integer customerId, HttpSession session, Model model) {
-        // FIX: thêm requireLogin — trước đây không check gì cả
+    public String list(@RequestParam(required = false) Integer customerId,
+                       HttpSession session, Model model) {
         AuthInterceptor.requireLogin(session);
 
         if (customerId != null) {
@@ -39,14 +40,19 @@ public class PrescriptionController {
             customerService.findById(customerId).ifPresent(c -> model.addAttribute("customer", c));
             model.addAttribute("customerId", customerId);
         } else {
-            model.addAttribute("prescriptions", List.of());
+            // FIX: hiện toàn bộ đơn thuốc của mọi KH
+            model.addAttribute("prescriptions", prescriptionService.findAll());
         }
+
+        // Truyền danh sách khách hàng để dropdown "Ghi nhận đơn mới" hoạt động ngay tại trang
+        model.addAttribute("allCustomers", customerService.findAll());
         return "prescriptions/list";
     }
 
+    /** Form tạo đơn thuốc mới cho một khách hàng cụ thể — chỉ Pharmacist */
     @GetMapping("/create")
-    public String showCreate(@RequestParam Integer customerId, HttpSession session, Model model) {
-        // FIX: chỉ Pharmacist được ghi nhận đơn thuốc
+    public String showCreate(@RequestParam Integer customerId,
+                             HttpSession session, Model model) {
         AuthInterceptor.requireRole(session, "Pharmacist");
         PrescriptionDTO dto = new PrescriptionDTO();
         dto.setCustomerId(customerId);
@@ -62,10 +68,8 @@ public class PrescriptionController {
                              Model model) {
         AppUser user = AuthInterceptor.requireRole(session, "Pharmacist");
         if (result.hasErrors()) {
-            if (dto.getCustomerId() != null) {
-                customerService.findById(dto.getCustomerId())
-                        .ifPresent(c -> model.addAttribute("customer", c));
-            }
+            customerService.findById(dto.getCustomerId())
+                    .ifPresent(c -> model.addAttribute("customer", c));
             return "prescriptions/create";
         }
         PrescriptionDTO saved = prescriptionService.save(dto, user.getUserId());

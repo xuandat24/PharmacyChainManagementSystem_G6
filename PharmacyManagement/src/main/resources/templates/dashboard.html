@@ -2,106 +2,139 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
-    <title>Dashboard - Flow 4</title>
-    <link rel="stylesheet" th:href="@{/css/flow4.css}">
+    <title>Dashboard Kiểm soát</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="flow4-layout">
-    <div th:replace="~{fragments :: sidebar('dashboard')}"></div>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{layout/sidebar :: sidebar('flow4-dashboard')}"></div>
+        <div class="col-md-10 bg-light p-4">
 
-    <main class="flow4-main">
-        <div th:replace="~{fragments :: topbar('Dashboard kiểm soát', 'Theo dõi điều chuyển, phiếu chi, báo cáo và cảnh báo của luồng 4')}"></div>
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+                <h2 class="text-secondary fw-bold">
+                    <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Kiểm soát
+                </h2>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="form-group mb-0 d-flex align-items-center gap-2">
+                        <label class="text-muted small mb-0">Chi nhánh</label>
+                        <input type="number" id="branchId" class="form-control form-control-sm" style="width:120px"
+                               min="1" placeholder="Tất cả">
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="reloadDashboardBtn">
+                        <i class="fa-solid fa-rotate me-1"></i>Tải dữ liệu
+                    </button>
+                </div>
+            </div>
 
-        <section class="toolbar">
-            <div class="form-group" style="max-width: 220px;">
-                <label for="branchId">Lọc theo chi nhánh</label>
-                <input type="number" id="branchId" min="1" placeholder="Để trống = toàn chuỗi">
+            <!-- Thẻ thống kê hàng 1 -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white border-start border-success border-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small">Doanh thu hôm nay</div>
+                                <h4 class="fw-bold text-success mb-0" id="todayRevenue">—</h4>
+                            </div>
+                            <span class="fs-2">💰</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white border-start border-primary border-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small">Hóa đơn hôm nay</div>
+                                <h4 class="fw-bold text-primary mb-0" id="todaySalesCount">—</h4>
+                            </div>
+                            <span class="fs-2">🧾</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white border-start border-warning border-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small">Điều chuyển chờ duyệt</div>
+                                <h4 class="fw-bold text-warning mb-0" id="pendingTransferCount">—</h4>
+                            </div>
+                            <span class="fs-2">🚚</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white border-start border-danger border-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted small">Phiếu chi chờ duyệt</div>
+                                <h4 class="fw-bold text-danger mb-0" id="pendingExpenseCount">—</h4>
+                            </div>
+                            <span class="fs-2">💸</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button class="btn btn-primary" id="reloadDashboardBtn">Tải dữ liệu</button>
-        </section>
 
-        <section class="card-grid">
-            <div class="summary-card">
-                <div class="summary-icon green">💰</div>
-                <div>
-                    <p>Doanh thu hôm nay</p>
-                    <h3 id="todayRevenue">0đ</h3>
+            <!-- Thẻ thống kê hàng 2 -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white">
+                        <div class="text-muted small">Tiền mặt hôm nay</div>
+                        <h5 class="fw-bold text-success mb-0" id="todayCashRevenue">—</h5>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white">
+                        <div class="text-muted small">Online hôm nay</div>
+                        <h5 class="fw-bold text-info mb-0" id="todayOnlineRevenue">—</h5>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white">
+                        <div class="text-muted small">Giá trị nhập hàng</div>
+                        <h5 class="fw-bold text-secondary mb-0" id="todayGoodsReceiptAmount">—</h5>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white">
+                        <div class="text-muted small">Tồn thấp / Sắp hết hạn</div>
+                        <h5 class="fw-bold text-danger mb-0">
+                            <span id="lowStockCount">0</span>
+                            <span class="text-muted">/</span>
+                            <span id="nearExpiryCount">0</span>
+                        </h5>
+                    </div>
                 </div>
             </div>
-            <div class="summary-card">
-                <div class="summary-icon blue">🧾</div>
-                <div>
-                    <p>Hóa đơn hôm nay</p>
-                    <h3 id="todaySalesCount">0</h3>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon orange">🚚</div>
-                <div>
-                    <p>Điều chuyển chờ duyệt</p>
-                    <h3 id="pendingTransferCount">0</h3>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon red">💸</div>
-                <div>
-                    <p>Phiếu chi chờ duyệt</p>
-                    <h3 id="pendingExpenseCount">0</h3>
-                </div>
-            </div>
-        </section>
 
-        <section class="card-grid">
-            <div class="summary-card">
-                <div class="summary-icon green">💵</div>
-                <div>
-                    <p>Tiền mặt</p>
-                    <h3 id="todayCashRevenue">0đ</h3>
+            <!-- Thao tác nhanh -->
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fa-solid fa-bolt me-2 text-warning"></i>Thao tác nhanh
+                </div>
+                <div class="card-body d-flex flex-wrap gap-2">
+                    <a class="btn btn-primary" th:href="@{/flow4/transfers/create}">
+                        <i class="fa-solid fa-dolly me-1"></i>Tạo điều chuyển
+                    </a>
+                    <a class="btn btn-outline-primary" th:href="@{/flow4/expenses/create}">
+                        <i class="fa-solid fa-money-bill me-1"></i>Tạo phiếu chi
+                    </a>
+                    <a class="btn btn-outline-secondary" th:href="@{/flow4/reports}">
+                        <i class="fa-solid fa-chart-line me-1"></i>Xem báo cáo
+                    </a>
+                    <a class="btn btn-outline-secondary" th:href="@{/flow4/periods}">
+                        <i class="fa-solid fa-lock me-1"></i>Khóa sổ tháng
+                    </a>
                 </div>
             </div>
-            <div class="summary-card">
-                <div class="summary-icon blue">🏦</div>
-                <div>
-                    <p>Online</p>
-                    <h3 id="todayOnlineRevenue">0đ</h3>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon orange">📦</div>
-                <div>
-                    <p>Giá trị nhập hàng</p>
-                    <h3 id="todayGoodsReceiptAmount">0đ</h3>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon red">⚠️</div>
-                <div>
-                    <p>Tồn thấp / Sắp hết hạn</p>
-                    <h3><span id="lowStockCount">0</span> / <span id="nearExpiryCount">0</span></h3>
-                </div>
-            </div>
-        </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <h2>Thao tác nhanh</h2>
-            </div>
-            <div class="action-row">
-                <a class="btn btn-primary" th:href="@{/flow4/transfers/create}">Tạo điều chuyển</a>
-                <a class="btn btn-blue" th:href="@{/flow4/expenses/create}">Tạo phiếu chi</a>
-                <a class="btn btn-light" th:href="@{/flow4/reports}">Xem báo cáo</a>
-                <a class="btn btn-light" th:href="@{/flow4/periods}">Khóa sổ tháng</a>
-            </div>
-        </section>
-    </main>
+        </div>
+    </div>
 </div>
-
-
-<div th:replace="~{fragments :: toast}"></div>
 <script th:src="@{/js/flow4/common.js}"></script>
 <script th:src="@{/js/flow4/dashboard.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

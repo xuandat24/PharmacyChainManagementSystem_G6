@@ -160,7 +160,7 @@ class SaleServiceTest {
 
             String error = saleService.addItem(1, 1, 10); // can 10
 
-            assertThat(error).contains("Ton kho khong du").contains("5");
+            assertThat(error).contains("Tồn kho không đủ").contains("5");
             verify(saleDetailRepository, never()).save(any());
         }
 
@@ -173,7 +173,7 @@ class SaleServiceTest {
 
             String error = saleService.addItem(1, 1, 1);
 
-            assertThat(error).contains("Ton kho khong du").contains("0");
+            assertThat(error).contains("Tồn kho không đủ").contains("0");
         }
 
         @Test
@@ -198,7 +198,7 @@ class SaleServiceTest {
 
             String error = saleService.addItem(1, 5, 5);
 
-            assertThat(error).containsIgnoringCase("khach hang");
+            assertThat(error).contains("khách hàng");
         }
 
         @Test
@@ -212,7 +212,7 @@ class SaleServiceTest {
 
             String error = saleService.addItem(1, 5, 5);
 
-            assertThat(error).containsIgnoringCase("don thuoc");
+            assertThat(error).contains("đơn thuốc");
         }
 
         @Test
@@ -227,7 +227,7 @@ class SaleServiceTest {
 
             String error = saleService.addItem(1, 5, 5);
 
-            assertThat(error).containsIgnoringCase("don thuoc");
+            assertThat(error).contains("đơn thuốc");
         }
 
         @Test
@@ -286,7 +286,7 @@ class SaleServiceTest {
             when(inventoryBatchRepository.sumStock(1, 1)).thenReturn(100);
 
             String error = saleService.addItem(1, 1, 5);
-            assertThat(error).containsIgnoringCase("ngung");
+            assertThat(error).contains("ngừng");
         }
     }
 
